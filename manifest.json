@@ -1,14 +1,14 @@
 {
   "name": "VAULT",
   "short_name": "VAULT",
-  "start_url": "index.html",
+  "start_url": "/v2/index.html",
   "display": "standalone",
   "background_color": "#0b0f1a",
   "theme_color": "#0b0f1a",
   "icons": [
     {
-      "src": "icon.png",
-      "sizes": "512x512",
+      "src": "/v2/icon.png",
+      "sizes": "1024x1024",
       "type": "image/png",
       "purpose": "any"
     }
