@@ -32,27 +32,36 @@
         
         .media-card { 
             position: relative;
-            background: rgba(15, 23, 42, 0.9);
             border: 1px solid rgba(255, 255, 255, 0.08);
             backdrop-filter: blur(12px);
             overflow: hidden;
+            transition: all 0.3s ease;
+            border-radius: 12px;
         }
 
+        /* PRIORITY-BASED BACKGROUND FADES */
+        .priority-bg-1 { background: linear-gradient(135deg, rgba(153, 27, 27, 0.4) 0%, rgba(15, 23, 42, 0.95) 100%); }
+        .priority-bg-2 { background: linear-gradient(135deg, rgba(146, 64, 14, 0.4) 0%, rgba(15, 23, 42, 0.95) 100%); }
+        .priority-bg-3 { background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(15, 23, 42, 0.95) 100%); }
+        .priority-bg-4 { background: rgba(30, 41, 59, 0.5); }
+
+        /* CATEGORY SIDE BORDERS */
         .card-movie { border-left: 5px solid #ef4444; }
         .card-tv { border-left: 5px solid #10b981; }
         .card-vidya { border-left: 5px solid #fbbf24; }
 
         .category-watermark {
             position: absolute;
-            top: -5px;
-            right: 5px;
-            font-size: 3rem;
-            font-weight: 900;
-            opacity: 0.05;
+            top: 2px;
+            right: 8px;
+            font-size: 2.8rem;
+            font-weight: 950;
+            opacity: 0.08;
             pointer-events: none;
             font-style: italic;
             text-transform: uppercase;
             z-index: 0;
+            line-height: 1;
         }
 
         .priority-1 { color: #f87171; font-weight: 900; } 
@@ -79,12 +88,10 @@
                 <h1 id="vault-logo" class="text-3xl font-black text-white tracking-tighter italic">VAULT<span class="text-sky-400 font-light text-xl not-italic ml-1">Tracker</span></h1>
                 <p class="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">Encrypted Local Archive</p>
             </div>
-            <div class="flex flex-col items-end gap-2">
-                <div class="flex gap-2 items-center">
-                    <span id="syncStatus" class="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-2">Local Only</span>
-                    <button onclick="toggleCompleted()" id="historyToggle" class="text-white bg-slate-800 hover:bg-slate-700 text-[10px] uppercase font-black px-3 py-1 rounded-full">History</button>
-                    <button onclick="setupCloud()" class="text-sky-400 hover:text-white text-[10px] uppercase font-black p-1">Cloud</button>
-                </div>
+            <div class="flex gap-2 items-center">
+                <span id="syncStatus" class="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-2">Local Only</span>
+                <button onclick="toggleCompleted()" id="historyToggle" class="text-white bg-slate-800 hover:bg-slate-700 text-[10px] uppercase font-black px-3 py-1 rounded-full">History</button>
+                <button onclick="setupCloud()" class="text-sky-400 hover:text-white text-[10px] uppercase font-black p-1">Cloud</button>
             </div>
         </header>
 
@@ -127,8 +134,10 @@
 
         function updateSyncStatus(text) { 
             const el = document.getElementById('syncStatus');
-            el.innerText = text;
-            el.className = text === "Synced" ? "text-[9px] font-black text-sky-400 uppercase tracking-widest mr-2" : "text-[9px] font-black text-slate-400 uppercase tracking-widest mr-2";
+            if(el) {
+                el.innerText = text;
+                el.className = text === "Synced" ? "text-[9px] font-black text-sky-400 uppercase tracking-widest mr-2" : "text-[9px] font-black text-slate-400 uppercase tracking-widest mr-2";
+            }
         }
 
         async function save() { 
@@ -138,7 +147,7 @@
         }
 
         async function setupCloud() {
-            const token = prompt("Enter GitHub Token (ghp_...):", cloudConfig.token);
+            const token = prompt("Enter GitHub Token:", cloudConfig.token);
             if (!token) return;
             document.getElementById('app-root').classList.add('syncing');
             try {
@@ -273,7 +282,7 @@
                 list.forEach(i => {
                     const sC = i.status === 'in progress' ? 'status-progress' : (i.status === 'done' ? 'status-done' : 'status-todo');
                     h += `
-                    <div class="media-card card-${i.category} p-4 rounded-xl shadow-lg ${i.status === 'done' ? 'opacity-30 grayscale' : ''}">
+                    <div class="media-card card-${i.category} priority-bg-${i.priority} p-4 shadow-lg ${i.status === 'done' ? 'opacity-30 grayscale' : ''}">
                         <div class="category-watermark">${key === 'vidya' ? 'GAMES' : key}</div>
                         
                         <div class="flex justify-between items-start mb-1 relative z-10">
@@ -316,7 +325,6 @@
             });
         }
 
-        if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/v2/sw.js'); }); }
         function toggleCompleted() { showAll = !showAll; render(); }
         syncFromCloud();
         render();
