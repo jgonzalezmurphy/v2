@@ -16,14 +16,14 @@
     <script src="https://cdn.tailwindcss.com"></script>
 
     <style>
-        :root { --bg: #0b0f1a; }
+        :root { --bg: #05070a; }
         * { box-sizing: border-box; }
         body { background-color: var(--bg) !important; color: #f1f5f9; font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 1rem; min-height: 100vh; padding-top: env(safe-area-inset-top); overflow-x: hidden; }
         
-        /* Category Specific Theming with Distinct Shading */
-        .card-movie { border-left: 4px solid #ef4444; background: linear-gradient(135deg, rgba(239, 68, 68, 0.12) 0%, #0f172a 100%); }
-        .card-tv { border-left: 4px solid #10b981; background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, #0f172a 100%); }
-        .card-vidya { border-left: 4px solid #f59e0b; background: linear-gradient(135deg, rgba(245, 158, 11, 0.12) 0%, #0f172a 100%); }
+        /* High-Intensity Category Shading */
+        .card-movie { border-left: 5px solid #ff4d4d; background: rgba(255, 77, 77, 0.18); } 
+        .card-tv { border-left: 5px solid #10b981; background: rgba(16, 185, 129, 0.15); }    
+        .card-vidya { border-left: 5px solid #fbbf24; background: rgba(251, 191, 36, 0.22); }  
         
         .priority-1 { color: #f87171; font-weight: 900; } 
         .priority-2 { color: #fbbf24; font-weight: 800; } 
@@ -89,12 +89,17 @@
     <script>
         const TMDB_KEY = "f8baa5b950fb92e47e7250e9faaa2a5c";
         const RAWG_KEY = "599d140e70a649629b0a68848d53d262";
+        
         let items = JSON.parse(localStorage.getItem('media_v1')) || [];
         let showAll = false;
         let collapsedSections = JSON.parse(localStorage.getItem('vault_collapsed')) || {};
         let cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' };
 
-        function updateSyncStatus(text) { document.getElementById('syncStatus').innerText = text; }
+        function updateSyncStatus(text) { 
+            const el = document.getElementById('syncStatus');
+            el.innerText = text;
+            el.className = text === "Synced" ? "text-[9px] font-black text-sky-400 uppercase tracking-widest mr-2" : "text-[9px] font-black text-slate-400 uppercase tracking-widest mr-2";
+        }
 
         async function save() { 
             localStorage.setItem('media_v1', JSON.stringify(items)); 
@@ -103,12 +108,14 @@
         }
 
         async function setupCloud() {
-            const token = prompt("GitHub Token:", cloudConfig.token);
+            const token = prompt("Enter GitHub Token (ghp_...):", cloudConfig.token);
             if (!token) return;
             document.getElementById('app-root').classList.add('syncing');
             try {
                 let gistId = cloudConfig.gistId;
                 const headers = { "Authorization": `token ${token}`, "Content-Type": "application/json" };
+                
+                // If no Gist ID exists, find or create one
                 if (!gistId) {
                     const res = await fetch("https://api.github.com/gists", {
                         method: "POST",
@@ -118,22 +125,26 @@
                     const data = await res.json();
                     gistId = data.id;
                 }
+                
                 cloudConfig = { token, gistId };
                 localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig));
                 await syncFromCloud();
-            } catch (e) { alert("Sync Error"); }
+                updateSyncStatus("Synced");
+            } catch (e) { 
+                alert("GitHub Auth Failed"); 
+                updateSyncStatus("Local Only");
+            }
             document.getElementById('app-root').classList.remove('syncing');
         }
 
         async function syncToCloud() {
-            updateSyncStatus("Syncing...");
             try {
-                await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, {
+                const res = await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, {
                     method: "PATCH",
                     headers: { "Authorization": `token ${cloudConfig.token}` },
                     body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } })
                 });
-                updateSyncStatus("Synced");
+                if(res.ok) updateSyncStatus("Synced");
             } catch (e) { updateSyncStatus("Offline"); }
         }
 
@@ -146,13 +157,14 @@
                 const data = await res.json();
                 if (data.files?.["vault.json"]) {
                     items = JSON.parse(data.files["vault.json"].content);
+                    updateSyncStatus("Synced");
                     render();
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { updateSyncStatus("Error"); }
         }
         
         async function addItem() {
-            const t = document.getElementById('title').value;
+            const t = document.getElementById('title').value.trim();
             const c = document.getElementById('category').value;
             const p = document.getElementById('priority').value;
             if (!t) return;
@@ -169,12 +181,13 @@
                 if (item.category === 'vidya') {
                     const r = await fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(item.title)}&page_size=1`);
                     const d = await r.json();
-                    if (d.results?.[0]) {
+                    if (d.results && d.results.length > 0) {
                         const g = d.results[0];
                         item.title = g.name;
                         item.score = g.metacritic || (g.rating ? Math.round(g.rating * 20) : 0);
-                        item.release = g.released?.split('-')[0] || "---";
+                        item.release = g.released ? g.released.split('-')[0] : "---";
                         item.genre = g.genres?.[0]?.name || "Game";
+                        item.runtime = g.playtime ? g.playtime + "h" : "N/A";
                     }
                 } else {
                     const r = await fetch(`https://api.themoviedb.org/3/search/${item.category}?api_key=${TMDB_KEY}&query=${encodeURIComponent(item.title)}`);
@@ -189,7 +202,7 @@
                         item.runtime = item.category === 'movie' ? detail.runtime + "m" : (detail.number_of_episodes || "0") + " eps";
                     }
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("API Error"); }
             document.getElementById('app-root').classList.remove('syncing');
         }
 
@@ -252,18 +265,18 @@
                                 <option value="3" ${i.priority===3?'selected':''}>Medium</option>
                                 <option value="4" ${i.priority===4?'selected':''}>Low</option>
                             </select>
-                            <span class="text-[10px] text-slate-300 font-bold uppercase tracking-widest truncate">
+                            <span class="text-[10px] text-white font-bold uppercase tracking-widest truncate">
                                 ${i.genre} • ${i.release} • <span contenteditable="true" onblur="updateField(${i.id}, 'runtime', this.innerText)" class="editable">${i.runtime}</span>
                             </span>
                         </div>
 
-                        <div class="flex gap-2 pt-3 border-t border-slate-800/50">
+                        <div class="flex gap-2 pt-3 border-t border-white/20">
                             <select onchange="const x = items.find(z=>z.id===${i.id}); x.status=this.value; save();" class="${sC} text-[10px] font-black uppercase px-3 py-2 rounded-lg border flex-1 text-center">
                                 <option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option>
                                 <option value="in progress" ${i.status==='in progress'?'selected':''}>In Progress</option>
                                 <option value="done" ${i.status==='done'?'selected':''}>Done</option>
                             </select>
-                            <button onclick="if(confirm('Expunge?')) { items=items.filter(z=>z.id!==${i.id}); save(); }" class="text-red-400 text-[9px] font-black uppercase px-4 py-2 bg-red-900/20 rounded-lg border border-red-900/40">
+                            <button onclick="if(confirm('Expunge?')) { items=items.filter(z=>z.id!==${i.id}); save(); }" class="text-red-400 text-[9px] font-black uppercase px-4 py-2 bg-red-900/40 rounded-lg border border-red-900/60">
                                 Expunge
                             </button>
                         </div>
@@ -275,7 +288,6 @@
 
         if ('serviceWorker' in navigator) { window.addEventListener('load', () => { navigator.serviceWorker.register('/v2/sw.js'); }); }
         function toggleCompleted() { showAll = !showAll; render(); }
-        function downloadData() { const b = new Blob([JSON.stringify(items)], {type: "application/json"}); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `vault.json`; a.click(); }
         syncFromCloud();
         render();
     </script>
