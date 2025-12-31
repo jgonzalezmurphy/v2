@@ -63,22 +63,16 @@
         }
 
         .play-btn {
-            width: 38px;
-            height: 38px;
-            background: #ff0000;
-            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s;
-            box-shadow: 0 4px 15px rgba(255,0,0,0.3);
         }
-        .play-btn:hover { transform: scale(1.1); filter: brightness(1.2); }
-
-        .priority-1 { color: #f87171; font-weight: 900; } 
-        .priority-2 { color: #fbbf24; font-weight: 800; } 
-        .priority-3 { color: #38bdf8; font-weight: 700; } 
-        .priority-4 { color: #94a3b8; font-weight: 600; } 
+        .play-btn svg { fill: rgba(255, 255, 255, 0.4); }
 
         .status-todo { color: #ffffff !important; background: #1e293b; border-color: #475569; }
         .status-progress { color: #38bdf8 !important; background: #0f172a; border-color: #38bdf8; }
@@ -86,7 +80,7 @@
 
         .glass { background: rgba(22, 27, 34, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
         
-        @keyframes pulse-glow { 0%, 100% { text-shadow: 0 0 5px rgba(56, 189, 248, 0.2); color: #fff; } 50% { text-shadow: 0 0 30px rgba(56, 189, 248, 1); color: #38bdf8; } }
+        @keyframes pulse-glow { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
         .syncing #vault-logo { animation: pulse-glow 1s ease-in-out infinite; }
     </style>
 </head>
@@ -94,37 +88,36 @@
     <div class="max-w-3xl mx-auto pb-32" id="app-root">
         <header class="mb-6 flex justify-between items-end">
             <div>
-                <h1 id="vault-logo" class="text-3xl font-black text-white tracking-tighter italic">VAULT<span class="text-sky-400 font-light text-xl not-italic ml-1">Tracker</span></h1>
+                <h1 id="vault-logo" class="text-3xl font-black text-white tracking-tighter italic">VAULT</h1>
                 <p class="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">Archive 2025</p>
             </div>
-            <div class="flex gap-2 items-center">
-                <span id="syncStatus" class="text-[9px] font-black text-slate-400 uppercase tracking-widest mr-2">Local Only</span>
-                <button onclick="toggleCompleted()" id="historyToggle" class="text-white bg-slate-800 hover:bg-slate-700 text-[10px] uppercase font-black px-3 py-1 rounded-full">History</button>
-                <button onclick="setupCloud()" class="text-sky-400 hover:text-white text-[10px] uppercase font-black p-1">Cloud</button>
+            <div class="flex gap-2">
+                <button onclick="toggleCompleted()" class="text-white bg-slate-800 text-[10px] uppercase font-black px-3 py-1 rounded-full">History</button>
+                <button onclick="setupCloud()" class="text-sky-400 text-[10px] uppercase font-black">Cloud</button>
             </div>
         </header>
 
         <div class="mb-6">
-            <input type="text" id="searchInput" oninput="render()" placeholder="Search archives..." class="w-full bg-slate-900 border-2 border-slate-700 p-4 rounded-xl text-base text-white placeholder-slate-500 focus:border-sky-500 transition-all">
+            <input type="text" id="searchInput" oninput="render()" placeholder="Search..." class="w-full bg-slate-900 border-2 border-slate-700 p-4 rounded-xl text-white">
         </div>
 
-        <div class="glass p-5 rounded-3xl shadow-2xl mb-12 relative overflow-hidden">
+        <div class="glass p-5 rounded-3xl mb-12">
             <div class="grid grid-cols-1 gap-4">
-                <input id="title" type="text" placeholder="Entry Title..." class="bg-black/60 border border-slate-700 p-4 rounded-xl text-white placeholder-slate-500 text-lg w-full">
+                <input id="title" type="text" placeholder="Entry Title..." class="bg-black/60 border border-slate-700 p-4 rounded-xl text-white w-full">
                 <div class="grid grid-cols-2 gap-3">
-                    <select id="category" class="bg-slate-800 border border-slate-600 p-3 rounded-xl text-xs text-white font-black uppercase tracking-widest">
+                    <select id="category" class="bg-slate-800 p-3 rounded-xl text-xs text-white font-black uppercase">
                         <option value="movie">🎥 Movie</option>
                         <option value="tv">📺 TV Show</option>
                         <option value="vidya" selected>🎮 Video Game</option>
                     </select>
-                    <select id="priority" class="bg-slate-800 border border-slate-600 p-3 rounded-xl text-xs text-white font-black uppercase tracking-widest">
+                    <select id="priority" class="bg-slate-800 p-3 rounded-xl text-xs text-white font-black uppercase">
                         <option value="1">Immediate</option>
                         <option value="2">High</option>
-                        <option value="3">Medium</option>
+                        <option value="3" selected>Medium</option>
                         <option value="4">Low</option>
                     </select>
                 </div>
-                <button onclick="addItem()" class="bg-sky-500 hover:bg-sky-400 py-4 rounded-xl font-black text-xs uppercase tracking-[0.2em] transition-all active:scale-95 shadow-xl text-white">Add Entry</button>
+                <button onclick="addItem()" class="bg-sky-500 py-4 rounded-xl font-black text-xs uppercase text-white">Add Entry</button>
             </div>
         </div>
 
@@ -137,52 +130,25 @@
         
         let items = JSON.parse(localStorage.getItem('media_v1')) || [];
         let showAll = false;
-        let collapsedSections = JSON.parse(localStorage.getItem('vault_collapsed')) || {};
         let cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' };
-
-        function updateSyncStatus(text) { 
-            const el = document.getElementById('syncStatus');
-            if(el) { el.innerText = text; el.className = text === "Synced" ? "text-[9px] font-black text-sky-400 uppercase tracking-widest mr-2" : "text-[9px] font-black text-slate-400 uppercase tracking-widest mr-2"; }
-        }
 
         async function save() { 
             localStorage.setItem('media_v1', JSON.stringify(items)); 
             render(); 
-            if (cloudConfig.token && cloudConfig.gistId) await syncToCloud();
+            if (cloudConfig.token && cloudConfig.gistId) {
+                await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { 
+                    method: "PATCH", 
+                    headers: { "Authorization": `token ${cloudConfig.token}` }, 
+                    body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) 
+                });
+            }
         }
 
         async function setupCloud() {
-            const token = prompt("Enter GitHub Token:", cloudConfig.token);
+            const token = prompt("GitHub Token:", cloudConfig.token);
             if (!token) return;
-            document.getElementById('app-root').classList.add('syncing');
-            try {
-                let gistId = cloudConfig.gistId;
-                const headers = { "Authorization": `token ${token}`, "Content-Type": "application/json" };
-                if (!gistId) {
-                    const res = await fetch("https://api.github.com/gists", { method: "POST", headers, body: JSON.stringify({ description: "VAULT Backup", public: false, files: { "vault.json": { content: JSON.stringify(items) } } }) });
-                    const data = await res.json(); gistId = data.id;
-                }
-                cloudConfig = { token, gistId };
-                localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig));
-                await syncFromCloud();
-            } catch (e) { alert("GitHub Auth Failed"); }
-            document.getElementById('app-root').classList.remove('syncing');
-        }
-
-        async function syncToCloud() {
-            try {
-                await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { method: "PATCH", headers: { "Authorization": `token ${cloudConfig.token}` }, body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) });
-                updateSyncStatus("Synced");
-            } catch (e) { updateSyncStatus("Offline"); }
-        }
-
-        async function syncFromCloud() {
-            if (!cloudConfig.token || !cloudConfig.gistId) return;
-            try {
-                const res = await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { headers: { "Authorization": `token ${cloudConfig.token}` } });
-                const data = await res.json();
-                if (data.files?.["vault.json"]) { items = JSON.parse(data.files["vault.json"].content); updateSyncStatus("Synced"); render(); }
-            } catch (e) { updateSyncStatus("Error"); }
+            cloudConfig.token = token;
+            localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig));
         }
         
         async function addItem() {
@@ -202,23 +168,22 @@
             document.getElementById('app-root').classList.add('syncing');
             try {
                 if (item.category === 'vidya') {
-                    // Try RAWG
+                    // Stripped down fetch to bypass mobile CORS headers
                     const r = await fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(item.title)}&page_size=1`);
-                    const d = await r.json();
+                    const rd = await r.json();
                     
-                    if (d.results && d.results.length > 0) {
-                        const g = d.results[0];
+                    if (rd.results && rd.results.length > 0) {
+                        const g = rd.results[0];
                         item.title = g.name;
-                        item.score = g.metacritic || (g.rating ? Math.round(g.rating * 20) : 0);
+                        item.score = g.metacritic || Math.round(g.rating * 20) || 0;
                         item.release = g.released?.split('-')[0] || "---";
-                        item.genre = g.genres?.[0]?.name || "Vidya";
-                        item.runtime = g.playtime ? g.playtime + "h" : "N/A";
+                        item.genre = g.genres?.[0]?.name || "Game";
                     } else {
-                        // Wikipedia Fallback: Pulls basic info if RAWG is CORS-blocked
+                        // Wikipedia fallback if RAWG fails
                         const w = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(item.title.replace(/ /g, '_'))}`);
-                        const wData = await w.json();
-                        if (wData.title) {
-                            item.title = wData.title;
+                        const wd = await w.json();
+                        if (wd.title && wd.type !== "no-extract") {
+                            item.title = wd.title;
                             item.genre = "Game";
                         }
                     }
@@ -227,95 +192,59 @@
                     const d = await r.json();
                     if (d.results?.[0]) {
                         const m = d.results[0];
-                        const detail = await (await fetch(`https://api.themoviedb.org/3/${item.category}/${m.id}?api_key=${TMDB_KEY}`)).json();
-                        item.title = detail.title || detail.name;
-                        item.release = (detail.release_date || detail.first_air_date || "").split('-')[0];
-                        item.score = Math.round(detail.vote_average * 10);
-                        item.genre = detail.genres?.[0]?.name || "---";
-                        item.runtime = item.category === 'movie' ? (detail.runtime + "m") : (detail.number_of_episodes + " eps");
+                        item.title = m.title || m.name;
+                        item.release = (m.release_date || m.first_air_date || "").split('-')[0];
+                        item.score = Math.round(m.vote_average * 10);
+                        item.genre = item.category.toUpperCase();
                     }
                 }
-            } catch (e) { console.error("Metadata Failure:", e); }
+            } catch (e) { console.log("Metadata error"); }
             document.getElementById('app-root').classList.remove('syncing');
             render();
         }
 
         function updateField(id, field, value) {
             const item = items.find(i => i.id === id);
-            if (item) {
-                item[field] = (field === 'score' || field === 'priority') ? parseInt(value) || 0 : value;
-                save();
-            }
-        }
-
-        function toggleSection(key) {
-            collapsedSections[key] = !collapsedSections[key];
-            localStorage.setItem('vault_collapsed', JSON.stringify(collapsedSections));
-            render();
+            if (item) { item[field] = value; save(); }
         }
 
         function render() {
             const container = document.getElementById('tables-container');
-            const query = document.getElementById('searchInput').value.toLowerCase();
             container.innerHTML = '';
             const labels = { movie: '🎥 CINEMA', tv: '📺 SERIES', vidya: '🎮 GAMES' };
 
             Object.entries(labels).forEach(([key, label]) => {
                 let list = items.filter(i => i.category === key);
                 if (!showAll) list = list.filter(i => i.status !== 'done');
-                if (query) list = list.filter(i => i.title.toLowerCase().includes(query));
-                list.sort((a, b) => a.priority - b.priority || b.score - a.score);
-                if (list.length === 0 && !query) return;
+                list.sort((a, b) => a.priority - b.priority);
+                if (list.length === 0) return;
 
-                const isCollapsed = collapsedSections[key];
-                const chevron = isCollapsed ? '▲' : '▼';
-                
-                let h = `<section class="px-1">
-                    <button onclick="toggleSection('${key}')" class="flex items-center w-full gap-3 mb-4">
-                        <h2 class="text-[11px] font-black tracking-[0.4em] text-white uppercase italic">${label} <span class="text-sky-400 ml-1">${chevron}</span></h2>
-                        <div class="h-px flex-1 bg-white/10"></div>
-                    </button>
-                    <div class="space-y-4 ${isCollapsed ? 'hidden' : ''}">`;
+                let h = `<section class="px-1"><h2 class="text-[10px] font-black tracking-widest text-white mb-4 uppercase opacity-50">${label}</h2><div class="space-y-4">`;
                 
                 list.forEach(i => {
-                    const sC = i.status === 'in progress' ? 'status-progress' : (i.status === 'done' ? 'status-done' : 'status-todo');
-                    // Simplified YouTube Search URL to prevent "Error Occurred"
-                    const ytSearch = `https://www.youtube.com/results?search_query=${encodeURIComponent(i.title + ' ' + (i.category === 'vidya' ? 'game' : i.category) + ' official trailer')}`;
+                    // Mobile-compatible YouTube search link
+                    const ytUrl = `https://m.youtube.com/results?search_query=${encodeURIComponent(i.title + ' ' + (key==='vidya'?'game':'') + ' official trailer')}`;
                     
                     h += `
-                    <div class="media-card card-${i.category} priority-bg-${i.priority} p-4 shadow-lg ${i.status === 'done' ? 'opacity-30' : ''}">
-                        <div class="category-watermark">${key === 'vidya' ? 'VIDYA' : key}</div>
+                    <div class="media-card card-${key} priority-bg-${i.priority} p-4">
+                        <div class="category-watermark">${key.toUpperCase()}</div>
                         <div class="flex justify-between items-start mb-1 relative z-10">
-                            <h3 class="font-black text-white text-base uppercase pr-8">
-                                <span contenteditable="true" onblur="updateField(${i.id}, 'title', this.innerText)" class="editable">${i.title}</span>
-                            </h3>
-                            <div class="text-right shrink-0">
-                                <span class="font-mono font-black text-2xl text-sky-400">${i.score || '0'}</span>
-                            </div>
+                            <h3 class="font-black text-white text-base uppercase">${i.title}</h3>
+                            <span class="font-mono font-black text-xl text-sky-400">${i.score || '0'}</span>
                         </div>
                         <div class="flex items-center justify-between mb-4 relative z-10">
-                            <div class="flex items-center gap-3">
-                                <select onchange="updateField(${i.id}, 'priority', this.value)" class="priority-${i.priority} bg-black/40 text-[10px] uppercase font-black px-2 py-1 border border-white/10 rounded">
-                                    <option value="1" ${i.priority===1?'selected':''}>Immediate</option>
-                                    <option value="2" ${i.priority===2?'selected':''}>High</option>
-                                    <option value="3" ${i.priority===3?'selected':''}>Medium</option>
-                                    <option value="4" ${i.priority===4?'selected':''}>Low</option>
-                                </select>
-                                <span class="text-[10px] text-white/70 font-bold uppercase tracking-widest truncate">
-                                    ${i.genre} • ${i.release} • <span contenteditable="true" onblur="updateField(${i.id}, 'runtime', this.innerText)" class="editable">${i.runtime}</span>
-                                </span>
-                            </div>
-                            <a href="${ytSearch}" target="_blank" class="play-btn">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                            <span class="text-[10px] text-white/60 font-bold uppercase">${i.genre} • ${i.release}</span>
+                            <a href="${ytUrl}" target="_blank" class="play-btn">
+                                <svg width="12" height="12" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                             </a>
                         </div>
-                        <div class="flex gap-2 pt-3 border-t border-white/10 relative z-10">
-                            <select onchange="const x = items.find(z=>z.id===${i.id}); x.status=this.value; save();" class="${sC} text-[10px] font-black uppercase px-3 py-2 rounded-lg border flex-1 text-center">
+                        <div class="flex gap-2 relative z-10">
+                            <select onchange="updateField(${i.id}, 'status', this.value)" class="text-[10px] font-black uppercase px-2 py-2 rounded bg-black/40 text-white border border-white/10 flex-1">
                                 <option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option>
                                 <option value="in progress" ${i.status==='in progress'?'selected':''}>In Progress</option>
                                 <option value="done" ${i.status==='done'?'selected':''}>Done</option>
                             </select>
-                            <button onclick="if(confirm('Expunge?')) { items=items.filter(z=>z.id!==${i.id}); save(); }" class="text-red-400 text-[9px] font-black uppercase px-4 py-2 bg-red-900/40 rounded-lg border border-red-900/60">Expunge</button>
+                            <button onclick="items=items.filter(z=>z.id!==${i.id}); save();" class="text-red-400 text-[10px] font-black uppercase px-2 py-2 bg-red-900/20 rounded border border-red-900/40">Del</button>
                         </div>
                     </div>`;
                 });
@@ -324,7 +253,6 @@
         }
 
         function toggleCompleted() { showAll = !showAll; render(); }
-        syncFromCloud();
         render();
     </script>
 </body>
