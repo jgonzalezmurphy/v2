@@ -63,10 +63,10 @@
         }
 
         .play-btn {
-            width: 32px;
-            height: 32px;
-            background: rgba(255,255,255,0.1);
-            border: 1px solid rgba(255,255,255,0.2);
+            width: 36px;
+            height: 36px;
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.4);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -74,7 +74,7 @@
             transition: all 0.2s;
             cursor: pointer;
         }
-        .play-btn:hover { background: #ef4444; border-color: #ef4444; transform: scale(1.1); }
+        .play-btn:hover { background: #ef4444; transform: scale(1.1); }
 
         .priority-1 { color: #f87171; font-weight: 900; } 
         .priority-2 { color: #fbbf24; font-weight: 800; } 
@@ -98,7 +98,7 @@
             justify-content: center;
         }
         
-        .video-container { width: 90%; max-width: 800px; aspect-ratio: 16/9; position: relative; }
+        .video-container { width: 95%; max-width: 900px; aspect-ratio: 16/9; position: relative; }
 
         @keyframes pulse-glow { 0%, 100% { text-shadow: 0 0 5px rgba(56, 189, 248, 0.2); color: #fff; } 50% { text-shadow: 0 0 30px rgba(56, 189, 248, 1); color: #38bdf8; } }
         .syncing #vault-logo { animation: pulse-glow 1s ease-in-out infinite; }
@@ -109,9 +109,9 @@
         <div class="video-container">
             <iframe id="trailer-frame" class="w-full h-full rounded-xl border border-white/20" src="" frameborder="0" allowfullscreen allow="autoplay; fullscreen"></iframe>
         </div>
-        <div class="mt-6 flex gap-4">
-            <button onclick="toggleFullscreen()" class="bg-white/10 hover:bg-white/20 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-white border border-white/20">Fullscreen</button>
-            <button onclick="closeTrailer()" class="bg-red-500/20 hover:bg-red-500/40 px-6 py-2 rounded-full text-[10px] font-black uppercase tracking-widest text-red-400 border border-red-500/40">Close</button>
+        <div class="mt-8 flex gap-4">
+            <button onclick="toggleFullscreen()" class="bg-white/10 hover:bg-white/20 px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest text-white border border-white/20">Fullscreen</button>
+            <button onclick="closeTrailer()" class="bg-red-500/20 hover:bg-red-500/40 px-8 py-3 rounded-full text-[10px] font-black uppercase tracking-widest text-red-400 border border-red-500/40">Close</button>
         </div>
     </div>
 
@@ -167,7 +167,8 @@
         function openTrailer(title, cat) {
             const overlay = document.getElementById('video-overlay');
             const frame = document.getElementById('trailer-frame');
-            const query = encodeURIComponent(`${title} ${cat} trailer`);
+            const query = encodeURIComponent(`${title} ${cat} official trailer`);
+            // Use standard embed link - listType=search is deprecated and unreliable
             frame.src = `https://www.youtube.com/embed?listType=search&list=${query}&autoplay=1`;
             overlay.style.display = 'flex';
         }
@@ -183,15 +184,11 @@
             const frame = document.getElementById('trailer-frame');
             if (frame.requestFullscreen) frame.requestFullscreen();
             else if (frame.webkitRequestFullscreen) frame.webkitRequestFullscreen();
-            else if (frame.msRequestFullscreen) frame.msRequestFullscreen();
         }
 
         function updateSyncStatus(text) { 
             const el = document.getElementById('syncStatus');
-            if(el) {
-                el.innerText = text;
-                el.className = text === "Synced" ? "text-[9px] font-black text-sky-400 uppercase tracking-widest mr-2" : "text-[9px] font-black text-slate-400 uppercase tracking-widest mr-2";
-            }
+            if(el) { el.innerText = text; el.className = text === "Synced" ? "text-[9px] font-black text-sky-400 uppercase tracking-widest mr-2" : "text-[9px] font-black text-slate-400 uppercase tracking-widest mr-2"; }
         }
 
         async function save() { 
@@ -208,12 +205,8 @@
                 let gistId = cloudConfig.gistId;
                 const headers = { "Authorization": `token ${token}`, "Content-Type": "application/json" };
                 if (!gistId) {
-                    const res = await fetch("https://api.github.com/gists", {
-                        method: "POST", headers,
-                        body: JSON.stringify({ description: "VAULT Backup", public: false, files: { "vault.json": { content: JSON.stringify(items) } } })
-                    });
-                    const data = await res.json();
-                    gistId = data.id;
+                    const res = await fetch("https://api.github.com/gists", { method: "POST", headers, body: JSON.stringify({ description: "VAULT Backup", public: false, files: { "vault.json": { content: JSON.stringify(items) } } }) });
+                    const data = await res.json(); gistId = data.id;
                 }
                 cloudConfig = { token, gistId };
                 localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig));
@@ -224,11 +217,7 @@
 
         async function syncToCloud() {
             try {
-                await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, {
-                    method: "PATCH",
-                    headers: { "Authorization": `token ${cloudConfig.token}` },
-                    body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } })
-                });
+                await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { method: "PATCH", headers: { "Authorization": `token ${cloudConfig.token}` }, body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) });
                 updateSyncStatus("Synced");
             } catch (e) { updateSyncStatus("Offline"); }
         }
@@ -236,15 +225,9 @@
         async function syncFromCloud() {
             if (!cloudConfig.token || !cloudConfig.gistId) return;
             try {
-                const res = await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, {
-                    headers: { "Authorization": `token ${cloudConfig.token}` }
-                });
+                const res = await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { headers: { "Authorization": `token ${cloudConfig.token}` } });
                 const data = await res.json();
-                if (data.files?.["vault.json"]) {
-                    items = JSON.parse(data.files["vault.json"].content);
-                    updateSyncStatus("Synced");
-                    render();
-                }
+                if (data.files?.["vault.json"]) { items = JSON.parse(data.files["vault.json"].content); updateSyncStatus("Synced"); render(); }
             } catch (e) { updateSyncStatus("Error"); }
         }
         
@@ -253,7 +236,6 @@
             const c = document.getElementById('category').value;
             const p = document.getElementById('priority').value;
             if (!t) return;
-
             const newItem = { id: Date.now(), title: t, category: c, priority: parseInt(p), status: 'to-do', runtime: 'N/A', score: 0, genre: '---', release: '---' };
             items.push(newItem);
             document.getElementById('title').value = '';
@@ -266,15 +248,26 @@
             document.getElementById('app-root').classList.add('syncing');
             try {
                 if (item.category === 'vidya') {
+                    // Engine 1: RAWG
                     const r = await fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(item.title)}&page_size=1`);
                     const d = await r.json();
-                    if (d.results?.[0]) {
+                    
+                    if (d.results && d.results.length > 0) {
                         const g = d.results[0];
                         item.title = g.name;
-                        item.score = g.metacritic || Math.round(g.rating * 20);
+                        item.score = g.metacritic || (g.rating ? Math.round(g.rating * 20) : 0);
                         item.release = g.released?.split('-')[0] || "---";
                         item.genre = g.genres?.[0]?.name || "Game";
                         item.runtime = g.playtime ? g.playtime + "h" : "N/A";
+                    } else {
+                        // Engine 2: OpenCritic Backup
+                        const oc = await fetch(`https://api.opencritic.com/api/game/search?criteria=${encodeURIComponent(item.title)}`);
+                        const ocD = await oc.json();
+                        if (ocD && ocD[0]) {
+                            item.title = ocD[0].name;
+                            item.score = ocD[0].score > 0 ? Math.round(ocD[0].score) : 0;
+                            item.genre = "Vidya";
+                        }
                     }
                 } else {
                     const r = await fetch(`https://api.themoviedb.org/3/search/${item.category}?api_key=${TMDB_KEY}&query=${encodeURIComponent(item.title)}`);
@@ -286,10 +279,10 @@
                         item.release = (detail.release_date || detail.first_air_date || "").split('-')[0];
                         item.score = Math.round(detail.vote_average * 10);
                         item.genre = detail.genres?.[0]?.name || "---";
-                        item.runtime = item.category === 'movie' ? detail.runtime + "m" : detail.number_of_episodes + " eps";
+                        item.runtime = item.category === 'movie' ? (detail.runtime + "m") : (detail.number_of_episodes + " eps");
                     }
                 }
-            } catch (e) { console.error(e); }
+            } catch (e) { console.error("Fetch Error:", e); }
             document.getElementById('app-root').classList.remove('syncing');
             render();
         }
@@ -312,7 +305,6 @@
             const container = document.getElementById('tables-container');
             const query = document.getElementById('searchInput').value.toLowerCase();
             container.innerHTML = '';
-            
             const labels = { movie: '🎥 CINEMA', tv: '📺 SERIES', vidya: '🎮 GAMES' };
 
             Object.entries(labels).forEach(([key, label]) => {
@@ -320,7 +312,6 @@
                 if (!showAll) list = list.filter(i => i.status !== 'done');
                 if (query) list = list.filter(i => i.title.toLowerCase().includes(query));
                 list.sort((a, b) => a.priority - b.priority || b.score - a.score);
-
                 if (list.length === 0 && !query) return;
 
                 const isCollapsed = collapsedSections[key];
@@ -349,17 +340,17 @@
                         <div class="flex items-center justify-between mb-4 relative z-10">
                             <div class="flex items-center gap-3">
                                 <select onchange="updateField(${i.id}, 'priority', this.value)" class="priority-${i.priority} bg-black/40 text-[10px] uppercase font-black px-2 py-1 border border-white/10 rounded">
-                                    <option value="1" ${i.priority===1?'selected':''}>P1</option>
-                                    <option value="2" ${i.priority===2?'selected':''}>P2</option>
-                                    <option value="3" ${i.priority===3?'selected':''}>P3</option>
-                                    <option value="4" ${i.priority===4?'selected':''}>P4</option>
+                                    <option value="1" ${i.priority===1?'selected':''}>Immediate</option>
+                                    <option value="2" ${i.priority===2?'selected':''}>High</option>
+                                    <option value="3" ${i.priority===3?'selected':''}>Medium</option>
+                                    <option value="4" ${i.priority===4?'selected':''}>Low</option>
                                 </select>
                                 <span class="text-[10px] text-white/70 font-bold uppercase tracking-widest truncate">
                                     ${i.genre} • ${i.release} • <span contenteditable="true" onblur="updateField(${i.id}, 'runtime', this.innerText)" class="editable">${i.runtime}</span>
                                 </span>
                             </div>
                             <button onclick="openTrailer('${i.title.replace(/'/g, "\\'")}', '${i.category}')" class="play-btn">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="white"><path d="M8 5v14l11-7z"/></svg>
                             </button>
                         </div>
                         <div class="flex gap-2 pt-3 border-t border-white/10 relative z-10">
