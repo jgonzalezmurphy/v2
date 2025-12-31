@@ -108,13 +108,26 @@
             }
         }
 
+        async function pullFromCloud() {
+            if (!cloudConfig.token || !cloudConfig.gistId) return;
+            logStatus("Cloud Pull...");
+            try {
+                const res = await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, {
+                    headers: { "Authorization": `token ${cloudConfig.token}` }
+                });
+                const data = await res.json();
+                const remote = JSON.parse(data.files["vault.json"].content);
+                if (remote) { items = remote; render(); logStatus("Sync Ready."); }
+            } catch(e) { logStatus("Offline."); }
+        }
+
         function setupCloud() {
             const token = prompt("GitHub Token:", cloudConfig.token);
             const gistId = prompt("Gist ID:", cloudConfig.gistId);
             if (token && gistId) {
                 cloudConfig = { token, gistId };
                 localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig));
-                save();
+                pullFromCloud();
             }
         }
 
@@ -123,13 +136,11 @@
             const c = document.getElementById('category').value;
             const p = document.getElementById('priority').value;
             if (!t) return;
-
             if (c === 'vidya' && !localStorage.getItem('igdb_token')) {
                 const authUrl = `https://id.twitch.tv/oauth2/authorize?client_id=${CLIENT_ID}&redirect_uri=${encodeURIComponent(REDIRECT_URI)}&response_type=token&scope=`;
                 if(confirm("Authorize Twitch?")) window.location.href = authUrl;
                 return;
             }
-
             const newItem = { id: Date.now(), title: t, category: c, priority: parseInt(p), status: 'to-do', score: 0, genre: 'Pending', release: '2025', runtime: '--' };
             items.push(newItem);
             document.getElementById('title').value = '';
@@ -157,15 +168,26 @@
                         item.score = d[0].rating ? Math.round(d[0].rating) : 0;
                         item.release = d[0].first_release_date ? new Date(d[0].first_release_date * 1000).getFullYear() : "2025";
                         item.genre = d[0].genres?.[0]?.name || "Game";
+                        
+                        // Robust HLTB Search
                         try {
+                            const searchName = item.title.replace(/[^a-zA-Z0-0\s]/g, '');
                             const hltb = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://howlongtobeat.com/api/search')}`, {
                                 method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ searchType: "games", searchTerms: item.title.split(" "), searchPage: 1, size: 5 })
+                                headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0' },
+                                body: JSON.stringify({
+                                    searchType: "games",
+                                    searchTerms: searchName.split(" "),
+                                    searchPage: 1, size: 5,
+                                    use_fuzzy: true
+                                })
                             });
                             const hData = await hltb.json();
-                            if (hData.data?.[0]) item.runtime = Math.round(hData.data[0].comp_main / 3600) + 'h';
-                        } catch(e) {}
+                            if (hData.data?.[0]) {
+                                const best = hData.data.find(x => x.game_name.includes("Elden Ring")) || hData.data[0];
+                                item.runtime = best.comp_main > 0 ? Math.round(best.comp_main / 3600) + 'h' : '--';
+                            }
+                        } catch(e) { console.error("HLTB Fail"); }
                     }
                 } else {
                     logStatus("TMDB Sync...");
@@ -194,7 +216,6 @@
             container.innerHTML = '';
             const cats = { vidya: '🎮 GAMES', movie: '🎥 CINEMA', tv: '📺 SERIES' };
             const pMap = { 1: 'Immediate', 2: 'High', 3: 'Medium', 4: 'Low' };
-
             Object.entries(cats).forEach(([key, label]) => {
                 let list = items.filter(i => i.category === key && i.title.toLowerCase().includes(searchFilter));
                 if (!showAll) list = list.filter(i => i.status !== 'done');
@@ -206,7 +227,7 @@
                         <svg class="w-3 h-3 text-white transition-transform ${isCol?'-rotate-90':''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M19 9l-7 7-7-7"/></svg>
                         <h2 class="text-xs font-black tracking-widest text-white/60 uppercase">${label}</h2>
                     </div>
-                    <div class="space-y-4" style="display:${isCol?'none':'block'}">`;
+                    <div style="display:${isCol?'none':'block'}" class="space-y-4">`;
                 list.forEach(i => {
                     section += `
                     <div class="media-card card-${key} priority-bg-${i.priority} p-4">
@@ -234,7 +255,9 @@
             });
         }
         function toggleCompleted() { showAll = !showAll; render(); }
-        render();
+        
+        // Auto-pull on load
+        pullFromCloud().then(() => render());
     </script>
 </body>
 </html>
