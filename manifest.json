@@ -3,12 +3,12 @@
   "name": "VAULT Archive",
   "icons": [
     {
-      "src": "/v2/icon.png",
+      "src": "icon.png",
       "sizes": "192x192",
       "type": "image/png"
     }
   ],
-  "start_url": "/v2/index.html",
+  "start_url": "index.html",
   "display": "standalone",
   "theme_color": "#0b0f1a",
   "background_color": "#05070a"
