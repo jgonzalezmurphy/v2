@@ -178,26 +178,29 @@
             document.getElementById('app-root').classList.add('syncing');
             try {
                 if (item.category === 'vidya') {
-                    logStatus(`Searching RAWG for ${item.title}...`);
-                    // Using CORSProxy.io for direct attempt to bypass mobile headers
-                    const rawgUrl = `https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(item.title)}&page_size=1`;
-                    const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(rawgUrl)}`;
+                    logStatus("Initiating Bypass Fetch...");
                     
-                    const r = await fetch(proxyUrl);
+                    // Logic: Use AllOrigins with a direct URL encoding. 
+                    // This specific endpoint is often more reliable on mobile.
+                    const target = `https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(item.title)}&page_size=1`;
+                    const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(target)}`);
                     const d = await r.json();
                     
-                    if (d.results && d.results.length > 0) {
-                        const g = d.results[0];
+                    // Parse the wrapped content
+                    const data = JSON.parse(d.contents);
+                    
+                    if (data.results && data.results.length > 0) {
+                        const g = data.results[0];
                         item.title = g.name;
                         item.score = g.metacritic || (g.rating ? Math.round(g.rating * 20) : 0);
                         item.release = g.released?.split('-')[0] || "---";
                         item.genre = g.genres?.[0]?.name || "Game";
-                        logStatus("Game Data Found.");
+                        logStatus("Success: Entry Linked.");
                     } else {
-                        logStatus("No exact game match.");
+                        logStatus("Zero Results Found.");
                     }
                 } else {
-                    logStatus(`Searching TMDB for ${item.title}...`);
+                    logStatus(`TMDB Search...`);
                     const r = await fetch(`https://api.themoviedb.org/3/search/${item.category}?api_key=${TMDB_KEY}&query=${encodeURIComponent(item.title)}`);
                     const d = await r.json();
                     if (d.results?.[0]) {
@@ -206,26 +209,12 @@
                         item.release = (m.release_date || m.first_air_date || "").split('-')[0];
                         item.score = Math.round(m.vote_average * 10);
                         item.genre = item.category.toUpperCase();
-                        logStatus("Media Data Found.");
+                        logStatus("Media Data Linked.");
                     }
                 }
             } catch (e) { 
-                logStatus("Fetch error. Retrying search...");
-                // Final effort: Search without any special headers
-                if (item.category === 'vidya') {
-                   try {
-                       const res = await fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${item.title}&page_size=1`);
-                       const data = await res.json();
-                       const g = data.results[0];
-                       item.title = g.name;
-                       item.score = g.metacritic || 0;
-                       item.release = g.released?.split('-')[0] || "---";
-                       item.genre = g.genres?.[0]?.name || "Game";
-                       logStatus("Success on Retry.");
-                   } catch(err) {
-                       logStatus("Connection persistent block.");
-                   }
-                }
+                logStatus("Encryption/Security Block.");
+                console.error(e);
             }
             document.getElementById('app-root').classList.remove('syncing');
             render();
