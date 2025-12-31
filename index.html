@@ -3,76 +3,123 @@
 <head>
     <meta charset="UTF-8">
     <title>VAULT</title>
-    
-    <link rel="manifest" href="/v2/manifest.json?v=17">
-    <meta name="theme-color" content="#0b0f1a">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-
     <script src="https://cdn.tailwindcss.com"></script>
-
     <style>
         :root { --bg: #05070a; }
-        * { box-sizing: border-box; }
-        body { background-color: var(--bg) !important; color: #f1f5f9; font-family: 'Inter', system-ui, sans-serif; margin: 0; padding: 1rem; min-height: 100vh; padding-top: env(safe-area-inset-top); }
-        .media-card { position: relative; border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); border-radius: 12px; overflow: hidden; }
+        body { background-color: var(--bg) !important; color: #f1f5f9; font-family: 'Inter', sans-serif; margin: 0; padding: 1rem; min-height: 100vh; }
+        .media-card { position: relative; border: 1px solid rgba(255, 255, 255, 0.08); backdrop-filter: blur(12px); border-radius: 12px; overflow: hidden; margin-bottom: 1rem; }
         .priority-bg-1 { background: linear-gradient(135deg, rgba(153, 27, 27, 0.4) 0%, rgba(15, 23, 42, 0.95) 100%); }
         .priority-bg-2 { background: linear-gradient(135deg, rgba(146, 64, 14, 0.4) 0%, rgba(15, 23, 42, 0.95) 100%); }
         .priority-bg-3 { background: linear-gradient(135deg, rgba(30, 58, 138, 0.4) 0%, rgba(15, 23, 42, 0.95) 100%); }
         .priority-bg-4 { background: rgba(30, 41, 59, 0.5); }
         .card-vidya { border-left: 5px solid #fbbf24; }
         .card-movie { border-left: 5px solid #ef4444; }
+        .card-tv { border-left: 5px solid #10b981; }
+        .category-watermark { position: absolute; top: 2px; right: 8px; font-size: 2.8rem; font-weight: 950; opacity: 0.05; pointer-events: none; font-style: italic; text-transform: uppercase; z-index: 0; line-height: 1; }
         .glass { background: rgba(22, 27, 34, 0.9); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
-        @keyframes pulse-glow { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
-        .syncing #vault-logo { animation: pulse-glow 1s ease-in-out infinite; }
         #status-log { font-family: monospace; font-size: 10px; color: #64748b; text-align: center; margin-top: 8px; }
+        .collapsible-content { transition: max-height 0.3s ease-out; overflow: hidden; }
+        .collapsed .collapsible-content { max-height: 0 !important; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+        .syncing #vault-logo { animation: pulse 1s infinite; }
     </style>
 </head>
 <body>
     <div class="max-w-3xl mx-auto pb-32" id="app-root">
         <header class="mb-6 flex justify-between items-end">
             <div>
-                <h1 id="vault-logo" class="text-3xl font-black text-white tracking-tighter italic">VAULT</h1>
-                <p class="text-slate-300 text-[10px] uppercase tracking-[0.2em] font-bold">Archive 2025</p>
+                <h1 id="vault-logo" class="text-3xl font-black text-white italic tracking-tighter">VAULT</h1>
+                <p class="text-slate-300 text-[10px] uppercase font-bold tracking-[0.2em]">Archive 2025</p>
             </div>
-            <button onclick="toggleCompleted()" class="text-white bg-slate-800 text-[10px] uppercase font-black px-3 py-1 rounded-full">History</button>
+            <div class="flex gap-2">
+                <button onclick="toggleCompleted()" class="text-white bg-slate-800 text-[10px] uppercase font-black px-3 py-1 rounded-full">History</button>
+                <button onclick="setupCloud()" class="text-sky-400 text-[10px] uppercase font-black px-3 py-1 bg-sky-900/20 rounded-full border border-sky-900/40">Cloud</button>
+            </div>
         </header>
+
+        <div class="mb-6">
+            <input type="text" id="searchInput" oninput="render()" placeholder="Search Archive..." class="w-full bg-slate-900/60 border border-slate-700 p-4 rounded-xl text-white outline-none focus:border-sky-500 transition-colors">
+        </div>
 
         <div class="glass p-5 rounded-3xl mb-12">
             <div class="grid grid-cols-1 gap-4">
-                <input id="title" type="text" placeholder="Entry Title..." class="bg-black/60 border border-slate-700 p-4 rounded-xl text-white w-full">
+                <input id="title" type="text" placeholder="Entry Title..." class="bg-black/60 border border-slate-700 p-4 rounded-xl text-white w-full outline-none">
                 <div class="grid grid-cols-2 gap-3">
-                    <select id="category" class="bg-slate-800 p-3 rounded-xl text-xs text-white font-black uppercase">
+                    <select id="category" class="bg-slate-800 p-3 rounded-xl text-xs text-white font-black uppercase outline-none">
                         <option value="movie">🎥 Movie</option>
+                        <option value="tv">📺 TV Show</option>
                         <option value="vidya" selected>🎮 Video Game</option>
                     </select>
-                    <select id="priority" class="bg-slate-800 p-3 rounded-xl text-xs text-white font-black uppercase">
-                        <option value="1">P1</option><option value="2">P2</option><option value="3" selected>P3</option><option value="4">P4</option>
+                    <select id="priority" class="bg-slate-800 p-3 rounded-xl text-xs text-white font-black uppercase outline-none">
+                        <option value="1">Immediate</option>
+                        <option value="2">High</option>
+                        <option value="3" selected>Medium</option>
+                        <option value="4">Low</option>
                     </select>
                 </div>
-                <button onclick="addItem()" class="bg-sky-500 py-4 rounded-xl font-black text-xs uppercase text-white">Add Entry</button>
+                <button onclick="addItem()" class="bg-sky-500 py-4 rounded-xl font-black text-xs uppercase text-white shadow-lg active:scale-95 transition-transform">Add Entry</button>
                 <div id="status-log">System Ready</div>
             </div>
         </div>
-
         <div id="tables-container" class="space-y-10"></div>
     </div>
 
     <script>
         const TMDB_KEY = "f8baa5b950fb92e47e7250e9faaa2a5c";
-        const IGDB_ID = "gp762nuuoqcoxypju8c569th9wz7q5";
+        const CLIENT_ID = "gp762nuuoqcoxypju8c569th9wz7q5";
+        const CLIENT_SECRET = "re9omrwlj0l0rlz9fm595xh3cpvkh5"; 
         
         let items = JSON.parse(localStorage.getItem('media_v1')) || [];
+        let collapsed = JSON.parse(localStorage.getItem('vault_collapsed')) || {};
+        let cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' };
         let showAll = false;
 
         function logStatus(msg) { document.getElementById('status-log').innerText = msg; }
-        async function save() { localStorage.setItem('media_v1', JSON.stringify(items)); render(); }
+
+        async function save() { 
+            localStorage.setItem('media_v1', JSON.stringify(items)); 
+            localStorage.setItem('vault_collapsed', JSON.stringify(collapsed));
+            render(); 
+            if (cloudConfig.token && cloudConfig.gistId) {
+                try {
+                    await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { 
+                        method: "PATCH", 
+                        headers: { "Authorization": `token ${cloudConfig.token}` }, 
+                        body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) 
+                    });
+                } catch(e) {}
+            }
+        }
+
+        async function setupCloud() {
+            const token = prompt("GitHub Token:", cloudConfig.token);
+            const gistId = prompt("Gist ID:", cloudConfig.gistId);
+            if (token !== null && gistId !== null) {
+                cloudConfig = { token, gistId };
+                localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig));
+                logStatus("Cloud Config Updated.");
+            }
+        }
+
+        async function getIGDBToken() {
+            let token = localStorage.getItem('igdb_token');
+            if (token) return token;
+            const r = await fetch(`https://corsproxy.io/?${encodeURIComponent(`https://id.twitch.tv/oauth2/token?client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&grant_type=client_credentials`)}`, { method: 'POST' });
+            const data = await r.json();
+            if (data.access_token) {
+                localStorage.setItem('igdb_token', data.access_token);
+                return data.access_token;
+            }
+            throw new Error("Auth Failed");
+        }
 
         async function addItem() {
             const t = document.getElementById('title').value.trim();
             const c = document.getElementById('category').value;
             const p = document.getElementById('priority').value;
             if (!t) return;
-            const newItem = { id: Date.now(), title: t, category: c, priority: parseInt(p), status: 'to-do', score: 0, genre: 'Pending', release: '2025', playtime: '--' };
+            const newItem = { id: Date.now(), title: t, category: c, priority: parseInt(p), status: 'to-do', score: 0, genre: 'Pending', release: '2025', runtime: '--' };
             items.push(newItem);
             document.getElementById('title').value = '';
             render();
@@ -84,86 +131,96 @@
             document.getElementById('app-root').classList.add('syncing');
             try {
                 if (item.category === 'vidya') {
-                    logStatus(`Searching IGDB: ${item.title}`);
+                    const token = await getIGDBToken();
+                    logStatus(`Searching IGDB...`);
                     const q = `search "${item.title}"; fields name, rating, first_release_date, genres.name; limit 1;`;
                     const r = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.igdb.com/v4/games')}`, {
                         method: 'POST',
-                        headers: { 'Client-ID': IGDB_ID },
+                        headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` },
                         body: q
                     });
                     const data = await r.json();
-                    
-                    if (data && data[0]) {
+                    if (data?.[0]) {
                         const g = data[0];
                         item.title = g.name;
                         item.score = g.rating ? Math.round(g.rating) : 0;
                         item.release = g.first_release_date ? new Date(g.first_release_date * 1000).getFullYear() : "2025";
-                        item.genre = g.genres ? g.genres[0].name : "Game";
+                        item.genre = g.genres?.[0]?.name || "Game";
 
-                        logStatus(`Searching HLTB...`);
-                        const hltbSearch = `https://corsproxy.io/?${encodeURIComponent('https://howlongtobeat.com/api/search')}`;
-                        const hltbBody = JSON.stringify({
-                            searchType: "games", searchTerms: [item.title], searchPage: 1, size: 1
-                        });
-                        const hr = await fetch(hltbSearch, { 
-                            method: 'POST', 
+                        logStatus(`Syncing Playtime...`);
+                        const hltb = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://howlongtobeat.com/api/search')}`, {
+                            method: 'POST',
                             headers: { 'Content-Type': 'application/json', 'Origin': 'https://howlongtobeat.com' },
-                            body: hltbBody 
+                            body: JSON.stringify({ searchType: "games", searchTerms: [item.title], searchPage: 1, size: 1 })
                         });
-                        const hData = await hr.json();
-                        if (hData.data && hData.data[0]) {
-                            const hours = Math.round(hData.data[0].comp_main / 3600);
-                            item.playtime = hours > 0 ? `${hours}h` : "--";
-                        }
-                        logStatus("Sync Complete.");
+                        const hData = await hltb.json();
+                        if (hData.data?.[0]) item.runtime = Math.round(hData.data[0].comp_main / 3600) + 'h';
                     }
                 } else {
+                    logStatus(`Searching TMDB...`);
                     const r = await fetch(`https://api.themoviedb.org/3/search/${item.category}?api_key=${TMDB_KEY}&query=${encodeURIComponent(item.title)}`);
                     const d = await r.json();
                     if (d.results?.[0]) {
                         const m = d.results[0];
+                        const det = await (await fetch(`https://api.themoviedb.org/3/${item.category}/${m.id}?api_key=${TMDB_KEY}`)).json();
                         item.title = m.title || m.name;
-                        item.release = (m.release_date || m.first_air_date || "").split('-')[0];
                         item.score = Math.round(m.vote_average * 10);
+                        item.release = (m.release_date || m.first_air_date || "").split('-')[0];
                         item.genre = item.category.toUpperCase();
-                        logStatus("Cinema Linked.");
+                        let rt = item.category === 'movie' ? det.runtime : det.episode_run_time?.[0];
+                        item.runtime = rt ? rt + 'm' : '--';
                     }
                 }
-            } catch (e) { logStatus("Sync partially failed."); }
+                logStatus("Sync Complete.");
+            } catch (e) { 
+                logStatus("Sync Error.");
+                localStorage.removeItem('igdb_token');
+            }
             document.getElementById('app-root').classList.remove('syncing');
             render();
         }
 
         function render() {
             const container = document.getElementById('tables-container');
+            const searchFilter = document.getElementById('searchInput').value.toLowerCase();
             container.innerHTML = '';
-            const cats = { vidya: '🎮 GAMES', movie: '🎥 CINEMA' };
+            const cats = { vidya: '🎮 GAMES', movie: '🎥 CINEMA', tv: '📺 SERIES' };
+            const pMap = { 1: 'Immediate', 2: 'High', 3: 'Medium', 4: 'Low' };
 
             Object.entries(cats).forEach(([key, label]) => {
-                let list = items.filter(i => i.category === key);
+                let list = items.filter(i => i.category === key && i.title.toLowerCase().includes(searchFilter));
                 if (!showAll) list = list.filter(i => i.status !== 'done');
                 list.sort((a, b) => a.priority - b.priority);
                 if (list.length === 0) return;
 
-                let section = `<section><h2 class="text-[10px] font-black text-white/40 mb-4 uppercase">${label}</h2><div class="space-y-4">`;
+                const isCol = collapsed[key];
+                let section = `<section class="${isCol?'collapsed':''}">
+                    <div onclick="collapsed['${key}']=!collapsed['${key}']; save();" class="flex items-center gap-2 mb-4 cursor-pointer select-none">
+                        <svg class="w-3 h-3 text-white transition-transform ${isCol?'-rotate-90':''}" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="4" d="M19 9l-7 7-7-7"/></svg>
+                        <h2 class="text-xs font-black tracking-widest text-white/60 uppercase">${label}</h2>
+                    </div>
+                    <div class="collapsible-content space-y-4" style="max-height:${isCol?'0':'10000px'}">`;
+                
                 list.forEach(i => {
                     section += `
                     <div class="media-card card-${key} priority-bg-${i.priority} p-4">
-                        <div class="flex justify-between items-start">
+                        <div class="category-watermark">${key}</div>
+                        <div class="flex justify-between relative z-10">
                             <div>
-                                <h3 class="font-black text-white uppercase">${i.title}</h3>
-                                <div class="text-[10px] text-white/50 font-bold uppercase mt-1">
-                                    ${i.genre} • ${i.release} ${i.playtime !== '--' ? '• ⏳ ' + i.playtime : ''}
-                                </div>
+                                <h3 class="font-black text-white uppercase text-base leading-tight">${i.title}</h3>
+                                <div class="text-[10px] text-white/50 font-bold uppercase mt-1 tracking-wider">${i.genre} • ${i.release} • ${i.runtime}</div>
                             </div>
-                            <span class="font-mono text-xl text-sky-400">${i.score}</span>
+                            <span class="font-mono text-xl text-sky-400 font-black">${i.score}</span>
                         </div>
-                        <div class="flex gap-2 mt-4">
-                            <select onchange="items.find(x=>x.id===${i.id}).status=this.value; save();" class="text-[10px] font-black uppercase px-2 py-2 rounded bg-black/40 text-white border border-white/10 flex-1">
+                        <div class="flex gap-2 mt-4 relative z-10">
+                            <select onchange="items.find(x=>x.id===${i.id}).priority=parseInt(this.value); save();" class="text-[10px] font-black uppercase px-2 py-2 rounded bg-black/40 text-white border border-white/10 outline-none">
+                                ${Object.entries(pMap).map(([v, t]) => `<option value="${v}" ${i.priority==v?'selected':''}>${t}</option>`).join('')}
+                            </select>
+                            <select onchange="items.find(x=>x.id===${i.id}).status=this.value; save();" class="text-[10px] font-black uppercase px-2 py-2 rounded bg-black/40 text-white border border-white/10 flex-1 outline-none">
                                 <option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option>
                                 <option value="done" ${i.status==='done'?'selected':''}>Done</option>
                             </select>
-                            <button onclick="items=items.filter(z=>z.id!==${i.id}); save();" class="text-red-400 text-[10px] font-black uppercase px-3 py-2 bg-red-900/20 rounded border border-red-900/40">Del</button>
+                            <button onclick="items=items.filter(z=>z.id!==${i.id}); save();" class="text-red-400 text-[10px] font-black px-3 py-2 bg-red-900/20 rounded border border-red-900/40">Del</button>
                         </div>
                     </div>`;
                 });
