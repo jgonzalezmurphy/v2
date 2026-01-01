@@ -7,9 +7,8 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     
     <link rel="manifest" href="manifest.json">
-    <link rel="apple-touch-icon" href="icon.png">
-    <link rel="shortcut icon" href="icon.png" type="image/png">
     <link rel="icon" type="image/png" href="icon.png">
+    <link rel="apple-touch-icon" href="icon.png">
 
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
@@ -21,9 +20,10 @@
             font-weight: 950 !important; 
             text-transform: uppercase; 
             letter-spacing: 0.12em; 
-            font-size: 1.1rem !important; 
-            line-height: 1.2; 
-            margin-bottom: 0.75rem;
+            font-size: 1.2rem !important; 
+            line-height: 1; 
+            margin-top: 2rem;
+            margin-bottom: 1rem;
             display: block;
         }
 
@@ -40,7 +40,7 @@
         .category-watermark { position: absolute; top: 2px; right: 8px; font-size: 2.8rem; font-weight: 950; opacity: 0.1; pointer-events: none; font-style: italic; text-transform: uppercase; z-index: 0; line-height: 1; color: white; }
         .glass { background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
         
-        #status-log { font-family: monospace; font-size: 10px; color: #ffffff !important; text-align: center; margin-top: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; }
+        #status-log { font-family: monospace; font-size: 10px; color: #ffffff !important; text-align: center; margin-top: 8px; font-weight: bold; text-transform: uppercase; }
         
         @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.1); } }
         .syncing #vault-logo { animation: pulse 1s infinite; }
@@ -90,13 +90,20 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(() => {
-                console.log("Vault Service Worker Active");
+            navigator.serviceWorker.register('sw.js').then(reg => {
+                reg.onupdatefound = () => {
+                    const installingWorker = reg.installing;
+                    installingWorker.onstatechange = () => {
+                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                            location.reload(); 
+                        }
+                    };
+                };
             });
         }
 
         const TMDB_KEY = "f8baa5b950fb92e47e7250e9faaa2a5c", CLIENT_ID = "8bjq7bqv85pvclvbdlo4ocgff060tp";
-        let items = JSON.parse(localStorage.getItem('media_v1')) || [], collapsed = JSON.parse(localStorage.getItem('vault_collapsed')) || {}, cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' }, showAll = false, deleteTimeout = null;
+        let items = JSON.parse(localStorage.getItem('media_v1')) || [], collapsed = JSON.parse(localStorage.getItem('vault_collapsed')) || {}, cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' }, showAll = false;
         
         function logStatus(msg) { document.getElementById('status-log').innerText = msg; }
         
@@ -156,7 +163,7 @@
         }
 
         function confirmDelete(el, id) {
-            if (el.innerText === 'DEL') { el.innerText = 'SURE?'; el.classList.add('btn-confirm'); deleteTimeout = setTimeout(() => { el.innerText = 'DEL'; el.classList.remove('btn-confirm'); }, 3000); }
+            if (el.innerText === 'DEL') { el.innerText = 'SURE?'; el.classList.add('btn-confirm'); setTimeout(() => { if(el) { el.innerText = 'DEL'; el.classList.remove('btn-confirm'); } }, 3000); }
             else { items = items.filter(z => z.id !== id); save(); }
         }
 
