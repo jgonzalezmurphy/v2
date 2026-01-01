@@ -90,28 +90,50 @@
 
     <script>
         if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(reg => {
-                reg.onupdatefound = () => {
-                    const installingWorker = reg.installing;
-                    installingWorker.onstatechange = () => {
-                        if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                            location.reload(); 
-                        }
-                    };
-                };
-            });
+            navigator.serviceWorker.register('sw.js');
         }
 
         const TMDB_KEY = "f8baa5b950fb92e47e7250e9faaa2a5c", CLIENT_ID = "8bjq7bqv85pvclvbdlo4ocgff060tp";
-        let items = JSON.parse(localStorage.getItem('media_v1')) || [], collapsed = JSON.parse(localStorage.getItem('vault_collapsed')) || {}, cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' }, showAll = false;
+        let items = JSON.parse(localStorage.getItem('media_v1')) || [], 
+            collapsed = JSON.parse(localStorage.getItem('vault_collapsed')) || {}, 
+            cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' }, 
+            showAll = false;
         
         function logStatus(msg) { document.getElementById('status-log').innerText = msg; }
         
         async function save() { 
-            localStorage.setItem('media_v1', JSON.stringify(items)); localStorage.setItem('vault_collapsed', JSON.stringify(collapsed)); render(); 
+            localStorage.setItem('media_v1', JSON.stringify(items)); 
+            localStorage.setItem('vault_collapsed', JSON.stringify(collapsed)); 
+            render(); 
             if (cloudConfig.token && cloudConfig.gistId) {
-                try { await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { method: "PATCH", headers: { "Authorization": `token ${cloudConfig.token}` }, body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) }); } catch(e) {}
+                try { 
+                    await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { 
+                        method: "PATCH", 
+                        headers: { "Authorization": `token ${cloudConfig.token}` }, 
+                        body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) 
+                    }); 
+                } catch(e) { logStatus("Sync Failed."); }
             }
+        }
+
+        async function pullFromCloud() {
+            if (!cloudConfig.token || !cloudConfig.gistId) return;
+            logStatus("Syncing with Cloud...");
+            try {
+                const res = await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, {
+                    headers: { "Authorization": `token ${cloudConfig.token}` }
+                });
+                const data = await res.json();
+                if (data.files["vault.json"]) {
+                    const cloudItems = JSON.parse(data.files["vault.json"].content);
+                    if (cloudItems.length >= items.length) {
+                        items = cloudItems;
+                        localStorage.setItem('media_v1', JSON.stringify(items));
+                        render();
+                        logStatus("Cloud Data Restored");
+                    }
+                }
+            } catch(e) { logStatus("Cloud Pull Failed"); }
         }
 
         async function hltbSearchAggressive(originalTitle) {
@@ -144,7 +166,7 @@
                         item.genre = item.category.toUpperCase();
                     }
                 }
-            } catch (e) { logStatus("Sync Error."); }
+            } catch (e) { logStatus("Metadata Error."); }
             document.getElementById('app-root').classList.remove('syncing'); save();
         }
 
@@ -157,9 +179,13 @@
 
         function toggleCompleted() { showAll = !showAll; render(); }
 
-        function setupCloud() {
+        async function setupCloud() {
             const t = prompt("GitHub Token:", cloudConfig.token), g = prompt("Gist ID:", cloudConfig.gistId);
-            if (t !== null && g !== null) { cloudConfig = { token: t, gistId: g }; localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig)); save(); }
+            if (t !== null && g !== null) { 
+                cloudConfig = { token: t, gistId: g }; 
+                localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig)); 
+                await pullFromCloud();
+            }
         }
 
         function confirmDelete(el, id) {
@@ -188,7 +214,10 @@
                 container.innerHTML += section + `</div></section>`;
             });
         }
+        
+        // Initial Startup
         render();
+        pullFromCloud();
     </script>
 </body>
 </html>
