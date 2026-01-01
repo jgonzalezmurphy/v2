@@ -22,7 +22,7 @@
         @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
         .syncing #vault-logo { animation: pulse 1s infinite; }
         
-        .notes-trigger { font-size: 9px; font-weight: 900; color: #38bdf8; letter-spacing: 0.1em; cursor: pointer; margin-top: 6px; display: block; opacity: 0.6; }
+        .notes-trigger { font-size: 8px; font-weight: 900; color: #38bdf8; letter-spacing: 0.1em; cursor: pointer; margin-top: 8px; display: inline-block; opacity: 0.5; }
         .notes-area { 
             background: rgba(0,0,0,0.4); 
             border: 1px solid rgba(255,255,255,0.08); 
@@ -36,15 +36,19 @@
             overflow: hidden;
             height: 0;
             opacity: 0;
+            margin: 0;
             transition: opacity 0.2s ease-out;
         }
         .notes-area:focus, .notes-area:not(:placeholder-shown) {
             height: auto;
-            min-height: 50px;
-            padding: 10px;
+            min-height: 40px;
+            padding: 8px;
             margin-top: 4px;
+            margin-bottom: 4px;
             opacity: 1;
         }
+        .controls-row { margin-top: 2px; }
+        .btn-confirm { background-color: #ef4444 !important; color: white !important; border-color: transparent !important; }
     </style>
 </head>
 <body>
@@ -55,7 +59,7 @@
                 <p class="text-slate-300 text-[10px] uppercase font-bold tracking-[0.2em]">Archive 2026</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="toggleCompleted()" class="text-white bg-slate-800 text-[10px] uppercase font-black px-3 py-1 rounded-full">History</button>
+                <button onclick="toggleCompleted()" id="btn-history" class="text-white bg-slate-800 text-[10px] uppercase font-black px-3 py-1 rounded-full border border-transparent">History</button>
                 <button onclick="setupCloud()" class="text-sky-400 text-[10px] uppercase font-black px-3 py-1 bg-sky-900/20 rounded-full border border-sky-900/40">Cloud</button>
             </div>
         </header>
@@ -76,7 +80,7 @@
                         <option value="4">Low</option>
                     </select>
                 </div>
-                <button onclick="addItem()" class="bg-sky-500 py-4 rounded-xl font-black text-xs uppercase text-white">Add Entry</button>
+                <button onclick="addItem()" class="bg-sky-500 py-4 rounded-xl font-black text-xs uppercase text-white active:scale-95 transition-transform">Add Entry</button>
                 <div id="status-log">System Ready</div>
             </div>
         </div>
@@ -92,6 +96,7 @@
         let collapsed = JSON.parse(localStorage.getItem('vault_collapsed')) || {};
         let cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' };
         let showAll = false;
+        let deleteTimeout = null;
 
         function logStatus(msg) { document.getElementById('status-log').innerText = msg; }
 
@@ -133,12 +138,10 @@
             try {
                 if (item.category === 'vidya') {
                     const token = localStorage.getItem('igdb_token');
-                    logStatus("IGDB Sync...");
-                    const igdbQuery = `search "${item.title}"; fields name, rating, first_release_date, genres.name; limit 1;`;
                     const r = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.igdb.com/v4/games')}`, {
                         method: 'POST',
                         headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` },
-                        body: igdbQuery
+                        body: `search "${item.title}"; fields name, rating, first_release_date, genres.name; limit 1;`
                     });
                     const d = await r.json();
                     if (d?.[0]) {
@@ -149,7 +152,6 @@
                         item.runtime = await hltbSearchAggressive(item.title);
                     }
                 } else {
-                    logStatus("TMDB Sync...");
                     const r = await fetch(`https://api.themoviedb.org/3/search/${item.category}?api_key=${TMDB_KEY}&query=${encodeURIComponent(item.title)}`);
                     const d = await r.json();
                     if (d.results?.[0]) {
@@ -161,15 +163,12 @@
                         if (item.category === 'movie') {
                             item.runtime = det.runtime ? det.runtime + 'm' : '--';
                         } else {
-                            const eps = det.number_of_episodes;
-                            const seasons = det.number_of_seasons;
                             const dur = det.episode_run_time?.[0];
-                            item.runtime = dur ? `${dur}m` : (seasons ? `S${seasons} • ${eps}ep` : '--');
+                            item.runtime = dur ? `${dur}m` : (det.number_of_seasons ? `S${det.number_of_seasons} • ${det.number_of_episodes}e` : '--');
                         }
                         item.genre = item.category.toUpperCase();
                     }
                 }
-                logStatus("Ready.");
             } catch (e) { logStatus("Sync Error."); }
             document.getElementById('app-root').classList.remove('syncing');
             save();
@@ -187,15 +186,33 @@
             fetchMetadata(newItem);
         }
 
-        function toggleCompleted() { showAll = !showAll; render(); }
+        function toggleCompleted() { 
+            showAll = !showAll; 
+            document.getElementById('btn-history').style.borderColor = showAll ? '#38bdf8' : 'transparent';
+            render(); 
+        }
 
         function setupCloud() {
-            const token = prompt("GitHub Token:", cloudConfig.token);
-            const gistId = prompt("Gist ID:", cloudConfig.gistId);
-            if (token && gistId) {
-                cloudConfig = { token, gistId };
+            const t = prompt("GitHub Token:", cloudConfig.token);
+            const g = prompt("Gist ID:", cloudConfig.gistId);
+            if (t !== null && g !== null) {
+                cloudConfig = { token: t, gistId: g };
                 localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig));
-                logStatus("Cloud Updated.");
+                save();
+            }
+        }
+
+        function confirmDelete(el, id) {
+            if (el.innerText === 'DEL') {
+                el.innerText = 'SURE?';
+                el.classList.add('btn-confirm');
+                deleteTimeout = setTimeout(() => {
+                    el.innerText = 'DEL';
+                    el.classList.remove('btn-confirm');
+                }, 3000);
+            } else {
+                items = items.filter(z => z.id !== id);
+                save();
             }
         }
 
@@ -211,18 +228,20 @@
             container.innerHTML = '';
             const cats = { vidya: '🎮 GAMES', movie: '🎥 CINEMA', tv: '📺 SERIES' };
             const pMap = { 1: 'Immediate', 2: 'High', 3: 'Medium', 4: 'Low' };
+            
             Object.entries(cats).forEach(([key, label]) => {
                 let list = items.filter(i => i.category === key);
-                if (!showAll) list = list.filter(i => i.status !== 'done');
-                else list = list.filter(i => i.status === 'done');
+                list = showAll ? list.filter(i => i.status === 'done') : list.filter(i => i.status !== 'done');
                 list.sort((a, b) => a.priority - b.priority);
                 if (list.length === 0) return;
+                
                 const isCol = collapsed[key];
                 let section = `<section>
                     <div onclick="collapsed['${key}']=!collapsed['${key}']; save();" class="flex items-center gap-2 mb-4 cursor-pointer">
                         <h2 class="text-xs font-black tracking-widest text-white/60 uppercase">${label}</h2>
                     </div>
-                    <div style="display:${isCol?'none':'block'}" class="space-y-4">`;
+                    <div style="display:${isCol?'none':'block'}" class="space-y-3">`;
+                
                 list.forEach(i => {
                     const hasNotes = i.notes && i.notes.length > 0;
                     section += `
@@ -243,10 +262,10 @@
                             placeholder="..." 
                             oninput="autoExpand(this, ${i.id})"
                             onblur="save()"
-                            style="${hasNotes ? 'height:auto; min-height:50px; padding:10px; margin-top:4px; opacity:1;' : ''}"
+                            style="${hasNotes ? 'height:auto; min-height:40px; padding:8px; margin-top:4px; margin-bottom:4px; opacity:1;' : ''}"
                         >${i.notes || ''}</textarea>
 
-                        <div class="flex gap-2 mt-3 relative z-10">
+                        <div class="flex gap-2 controls-row relative z-10">
                             <select onchange="items.find(x=>x.id===${i.id}).priority=parseInt(this.value); save();" class="text-[10px] font-black uppercase px-2 py-2 rounded bg-black/40 text-white border border-white/10 outline-none">
                                 ${Object.entries(pMap).map(([v, t]) => `<option value="${v}" ${i.priority==v?'selected':''}>${t}</option>`).join('')}
                             </select>
@@ -255,7 +274,7 @@
                                 <option value="in-progress" ${i.status==='in-progress'?'selected':''}>In Progress</option>
                                 <option value="done" ${i.status==='done'?'selected':''}>Done</option>
                             </select>
-                            <button onclick="items=items.filter(z=>z.id!==${i.id}); save();" class="text-red-400 text-[10px] font-black px-3 py-2 bg-red-900/20 rounded border border-red-900/40">Del</button>
+                            <button onclick="confirmDelete(this, ${i.id})" class="text-red-400 text-[10px] font-black px-3 py-2 bg-red-900/20 rounded border border-red-900/40 transition-all">DEL</button>
                         </div>
                     </div>`;
                 });
