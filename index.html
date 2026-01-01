@@ -111,7 +111,18 @@
                 } else { 
                     const r = await fetch(`https://api.themoviedb.org/3/search/${item.category}?api_key=${TMDB_KEY}&query=${encodeURIComponent(item.title)}`); 
                     const d = await r.json(); 
-                    if (d.results?.[0]) { const m = d.results[0], det = await (await fetch(`https://api.themoviedb.org/3/${item.category}/${m.id}?api_key=${TMDB_KEY}`)).json(); item.title = m.title || m.name; item.score = Math.round(m.vote_average * 10); item.release = (m.release_date || m.first_air_date || "").split('-')[0]; item.runtime = item.category === 'movie' ? (det.runtime ? det.runtime + 'm' : '--') : (det.episode_run_time?.[0] ? det.episode_run_time[0] + 'm' : '--'); item.genre = det.genres?.[0]?.name || item.category.toUpperCase(); } 
+                    if (d.results?.[0]) { 
+                        const m = d.results[0], det = await (await fetch(`https://api.themoviedb.org/3/${item.category}/${m.id}?api_key=${TMDB_KEY}`)).json(); 
+                        item.title = m.title || m.name; 
+                        item.score = Math.round(m.vote_average * 10); 
+                        item.release = (m.release_date || m.first_air_date || "").split('-')[0]; 
+                        item.genre = det.genres?.[0]?.name || item.category.toUpperCase();
+                        if (item.category === 'movie') {
+                            item.runtime = det.runtime ? det.runtime + 'm' : '--';
+                        } else {
+                            item.runtime = (det.number_of_seasons ? 'S' + det.number_of_seasons : 'S1') + ' E' + (det.number_of_episodes || '--');
+                        }
+                    } 
                 } 
             } catch (e) { logStatus("API Error"); } 
             setSyncing(false); save(); 
