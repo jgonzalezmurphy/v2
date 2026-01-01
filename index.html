@@ -19,9 +19,10 @@
         .card-vidya { border-left: 5px solid #fbbf24; } .card-movie { border-left: 5px solid #ef4444; } .card-tv { border-left: 5px solid #10b981; }
         .category-watermark { position: absolute; top: -5px; right: 40px; font-size: 1.8rem; font-weight: 950; opacity: 0.05; pointer-events: none; font-style: italic; text-transform: uppercase; z-index: 0; color: white; }
         .glass { background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.2); }
-        #status-log { font-family: monospace; font-size: 10px; color: #ffffff !important; text-align: center; margin-top: 8px; font-weight: bold; text-transform: uppercase; }
-        @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.1); } }
-        .syncing #vault-logo { animation: pulse 1s infinite; }
+        #status-log { font-family: monospace; font-size: 10px; color: #ffffff !important; text-align: center; margin-top: 8px; font-weight: bold; text-transform: uppercase; opacity: 0.6; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+        .syncing #sync-icon { animation: spin 1s linear infinite; color: #38bdf8; }
+        #sync-icon:active { transform: scale(0.9); opacity: 0.7; }
         .notes-trigger { font-size: 8px; font-weight: 900; color: #38bdf8; letter-spacing: 0.1em; cursor: pointer; text-transform: uppercase; }
         .notes-area { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #ffffff; font-size: 11px; width: 100%; border-radius: 6px; outline: none; resize: none; overflow: hidden; height: 0; opacity: 0; transition: all 0.2s; margin: 0; }
         .notes-area.active { height: auto; min-height: 40px; padding: 8px; margin-top: 8px; opacity: 1; }
@@ -29,10 +30,15 @@
         .trailer-btn { background: rgba(255,255,255,0.15); width: 22px; height: 22px; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: white; font-size: 9px; transition: all 0.2s; }
     </style>
 </head>
-<body>
-    <div class="max-w-3xl mx-auto pb-32" id="app-root">
+<body id="body-root">
+    <div class="max-w-3xl mx-auto pb-32">
         <header class="mb-6 flex justify-between items-center">
-            <div><h1 id="vault-logo" class="text-4xl font-[1000] text-black italic tracking-[-0.07em] uppercase leading-none">VAULT</h1><p class="text-black text-[10px] uppercase font-black mt-1 tracking-[0.25em]">Archive 2026</p></div>
+            <div class="flex items-center gap-3">
+                <div id="sync-icon" onclick="pullFromCloud()" class="text-black transition-all cursor-pointer">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path><polyline points="22 4 22 10 16 10"></polyline></svg>
+                </div>
+                <div><h1 class="text-4xl font-[1000] text-black italic tracking-[-0.07em] uppercase leading-none">VAULT</h1><p class="text-black text-[10px] uppercase font-black mt-1 tracking-[0.25em]">Archive 2026</p></div>
+            </div>
             <div class="grid grid-cols-2 gap-1">
                 <button onclick="toggleCompleted()" class="text-white bg-black text-[8px] uppercase font-black px-2 py-1.5 rounded-lg shadow-md">History</button>
                 <button onclick="setupCloud()" class="text-white bg-black text-[8px] uppercase font-black px-2 py-1.5 rounded-lg shadow-md">Cloud</button>
@@ -69,22 +75,75 @@
         const savedSort = localStorage.getItem('vault_sort') || 'priority';
         document.getElementById('sort-order').value = savedSort;
         function logStatus(m) { document.getElementById('status-log').innerText = m; }
-        async function save() { localStorage.setItem('media_v1', JSON.stringify(items)); localStorage.setItem('vault_collapsed', JSON.stringify(collapsed)); render(); if (cloudConfig.token && cloudConfig.gistId) { try { await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { method: "PATCH", headers: { "Authorization": `token ${cloudConfig.token}` }, body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) }); logStatus("Cloud Saved"); } catch(e) { logStatus("Sync Failed"); } } }
-        async function pullFromCloud() { if (!cloudConfig.token || !cloudConfig.gistId) return; logStatus("Connecting..."); try { const res = await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { headers: { "Authorization": `token ${cloudConfig.token}` } }); const data = await res.json(); if (data.files?.["vault.json"]) { items = JSON.parse(data.files["vault.json"].content); render(); logStatus("Cloud Restored"); } } catch(e) { logStatus("Sync Error"); } }
-        function downloadBackup() { const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(items, null, 2)); a.download = "vault_backup.json"; a.click(); logStatus("Exported"); }
+        function setSyncing(state) { state ? document.body.classList.add('syncing') : document.body.classList.remove('syncing'); }
+        async function save() { 
+            localStorage.setItem('media_v1', JSON.stringify(items)); localStorage.setItem('vault_collapsed', JSON.stringify(collapsed)); render(); 
+            if (cloudConfig.token && cloudConfig.gistId) { 
+                setSyncing(true);
+                try { await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { method: "PATCH", headers: { "Authorization": `token ${cloudConfig.token}` }, body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) }); logStatus("Cloud Saved"); } 
+                catch(e) { logStatus("Sync Failed"); } 
+                finally { setSyncing(false); }
+            } 
+        }
+        async function pullFromCloud() { 
+            if (!cloudConfig.token || !cloudConfig.gistId) { logStatus("No Cloud Setup"); return; }
+            setSyncing(true);
+            try { 
+                const res = await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { headers: { "Authorization": `token ${cloudConfig.token}` } });
+                const data = await res.json(); 
+                if (data.files?.["vault.json"]) { items = JSON.parse(data.files["vault.json"].content); localStorage.setItem('media_v1', JSON.stringify(items)); render(); logStatus("Cloud Synced"); } 
+            } catch(e) { logStatus("Offline"); } 
+            finally { setSyncing(false); }
+        }
+        function downloadBackup() { const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(items, null, 2)); a.download = "vault_backup.json"; a.click(); }
         function importBackup(i) { const r = new FileReader(); r.onload = e => { try { items = JSON.parse(e.target.result); save(); logStatus("Imported"); } catch(err) { logStatus("Invalid File"); } }; r.readAsText(i.files[0]); }
-        async function refreshIGDBToken() { logStatus("Refreshing IGDB..."); try { const res = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://id.twitch.tv/oauth2/token')}`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&grant_type=client_credentials` }); const d = await res.json(); if (d.access_token) { localStorage.setItem('igdb_token', d.access_token); return d.access_token; } } catch(e) { return null; } }
+        async function refreshIGDBToken() { try { const res = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://id.twitch.tv/oauth2/token')}`, { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: `client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&grant_type=client_credentials` }); const d = await res.json(); if (d.access_token) { localStorage.setItem('igdb_token', d.access_token); return d.access_token; } } catch(e) { return null; } }
         async function hltbSearchAggressive(t) { const clean = t.replace(/[^a-zA-Z0-9\s]/g, '').trim(), words = clean.split(/\s+/); for (let i = words.length; i > 0; i--) { const q = words.slice(0, i).join(" "); try { const res = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://howlongtobeat.com/api/search')}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ searchType: "games", searchTerms: q.split(" "), searchPage: 1, size: 5, use_fuzzy: true }) }); const d = await res.json(); if (d.data?.[0]?.comp_main > 0) return Math.round(d.data[0].comp_main / 3600) + 'h'; } catch(e) {} } return '--'; }
-        async function fetchMetadata(item) { document.getElementById('app-root').classList.add('syncing'); try { if (item.category === 'vidya') { let token = localStorage.getItem('igdb_token') || await refreshIGDBToken(); const r = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.igdb.com/v4/games')}`, { method: 'POST', headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` }, body: `fields name, total_rating, first_release_date, genres.name; search "${item.title}"; limit 1;` }); if (r.status === 401) { token = await refreshIGDBToken(); return fetchMetadata(item); } const d = await r.json(); if (d?.[0]) { item.title = d[0].name; item.score = d[0].total_rating ? Math.round(d[0].total_rating) : 0; item.release = d[0].first_release_date ? new Date(d[0].first_release_date * 1000).getFullYear() : "2026"; item.genre = d[0].genres?.[0]?.name || "Game"; item.runtime = await hltbSearchAggressive(item.title); } } else { const r = await fetch(`https://api.themoviedb.org/3/search/${item.category}?api_key=${TMDB_KEY}&query=${encodeURIComponent(item.title)}`); const d = await r.json(); if (d.results?.[0]) { const m = d.results[0], det = await (await fetch(`https://api.themoviedb.org/3/${item.category}/${m.id}?api_key=${TMDB_KEY}`)).json(); item.title = m.title || m.name; item.score = Math.round(m.vote_average * 10); item.release = (m.release_date || m.first_air_date || "").split('-')[0]; item.runtime = item.category === 'movie' ? (det.runtime ? det.runtime + 'm' : '--') : (det.episode_run_time?.[0] ? det.episode_run_time[0] + 'm' : '--'); item.genre = det.genres?.[0]?.name || item.category.toUpperCase(); } } } catch (e) { logStatus("Metadata Error"); } document.getElementById('app-root').classList.remove('syncing'); save(); }
+        async function fetchMetadata(item) { 
+            setSyncing(true);
+            try { 
+                if (item.category === 'vidya') { 
+                    let token = localStorage.getItem('igdb_token') || await refreshIGDBToken(); 
+                    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.igdb.com/v4/games')}`, { method: 'POST', headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` }, body: `fields name, total_rating, first_release_date, genres.name; search "${item.title}"; limit 1;` }); 
+                    if (r.status === 401) { token = await refreshIGDBToken(); return fetchMetadata(item); } 
+                    const d = await r.json(); 
+                    if (d?.[0]) { item.title = d[0].name; item.score = d[0].total_rating ? Math.round(d[0].total_rating) : 0; item.release = d[0].first_release_date ? new Date(d[0].first_release_date * 1000).getFullYear() : "2026"; item.genre = d[0].genres?.[0]?.name || "Game"; item.runtime = await hltbSearchAggressive(item.title); } 
+                } else { 
+                    const r = await fetch(`https://api.themoviedb.org/3/search/${item.category}?api_key=${TMDB_KEY}&query=${encodeURIComponent(item.title)}`); 
+                    const d = await r.json(); 
+                    if (d.results?.[0]) { const m = d.results[0], det = await (await fetch(`https://api.themoviedb.org/3/${item.category}/${m.id}?api_key=${TMDB_KEY}`)).json(); item.title = m.title || m.name; item.score = Math.round(m.vote_average * 10); item.release = (m.release_date || m.first_air_date || "").split('-')[0]; item.runtime = item.category === 'movie' ? (det.runtime ? det.runtime + 'm' : '--') : (det.episode_run_time?.[0] ? det.episode_run_time[0] + 'm' : '--'); item.genre = det.genres?.[0]?.name || item.category.toUpperCase(); } 
+                } 
+            } catch (e) { logStatus("API Error"); } 
+            setSyncing(false); save(); 
+        }
         function addItem() { const t = document.getElementById('title').value.trim(); if (!t) return; const newItem = { id: Date.now(), title: t, category: document.getElementById('category').value, priority: parseInt(document.getElementById('priority').value), status: 'to-do', score: 0, genre: 'Pending', release: '2026', runtime: '--', notes: '' }; items.push(newItem); document.getElementById('title').value = ''; render(); fetchMetadata(newItem); }
         function toggleCompleted() { showAll = !showAll; render(); }
-        async function setupCloud() { const gt = prompt("GitHub Token:", cloudConfig.token), gi = prompt("Gist ID:", cloudConfig.gistId); if (gt !== null && gi !== null) { cloudConfig = { token: gt, gistId: gi }; localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig)); await pullFromCloud(); } if (confirm("Refresh IGDB?")) await refreshIGDBToken(); }
+        async function setupCloud() { const gt = prompt("GitHub Token:", cloudConfig.token), gi = prompt("Gist ID:", cloudConfig.gistId); if (gt !== null && gi !== null) { cloudConfig = { token: gt, gistId: gi }; localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig)); await pullFromCloud(); } }
         function confirmDelete(el, id) { if (el.innerText === 'DEL') { el.innerText = 'SURE?'; el.classList.add('btn-confirm'); setTimeout(() => { if(el) { el.innerText = 'DEL'; el.classList.remove('btn-confirm'); } }, 3000); } else { items = items.filter(z => z.id !== id); save(); } }
         function autoExpand(el, id) { el.style.height = 'inherit'; el.style.height = el.scrollHeight + 'px'; const i = items.find(x => x.id === id); if (i) { i.notes = el.value; localStorage.setItem('media_v1', JSON.stringify(items)); } }
-        function render() { const container = document.getElementById('tables-container'); container.innerHTML = ''; const s = document.getElementById('sort-order').value; const cats = { vidya: '🎮 GAMES', movie: '🎥 CINEMA', tv: '📺 SERIES' }, pMap = { 1: 'IMM', 2: 'HI', 3: 'MED', 4: 'LOW' }; Object.entries(cats).forEach(([key, label]) => { let list = items.filter(i => i.category === key); list = showAll ? list.filter(i => i.status === 'done') : list.filter(i => i.status !== 'done'); 
-        list.sort((a,b) => { if(s==='priority') return a.priority - b.priority; if(s==='recent') return b.id - a.id; if(s==='rating') return b.score - a.score; if(s==='release') return parseInt(b.release) - parseInt(a.release); if(s==='genre') return a.genre.localeCompare(b.genre); return 0; });
-        if (list.length === 0) return; const isCol = collapsed[key]; let section = `<section><div onclick="collapsed['${key}']=!collapsed['${key}']; save();" class="flex items-center gap-2 mb-2 cursor-pointer"><h2 class="text-[10px] font-black tracking-widest">${label} ${isCol ? '⊕' : ''}</h2></div><div style="display:${isCol?'none':'block'}" class="space-y-2">`;
-        list.forEach(i => { const nActive = i.notes && i.notes.length > 0; section += `<div class="media-card card-${key} priority-bg-${i.priority} p-3"><div class="category-watermark">${key}</div><div class="flex justify-between items-start relative z-10"><div><h3 class="font-black text-white uppercase text-sm leading-tight">${i.title}</h3><div class="text-[9px] text-white/60 font-bold uppercase tracking-wider">${i.genre} • ${i.release} • ${i.runtime}</div></div><div class="flex items-center gap-3"><button onclick="window.open('https://www.youtube.com/results?search_query=${encodeURIComponent(i.title + ' official trailer')}', '_blank')" class="trailer-btn">▶</button><span class="font-mono text-lg text-white font-black leading-none">${i.score}</span></div></div><div class="mt-2 flex items-center gap-2 relative z-10"><select onchange="items.find(x=>x.id===${i.id}).priority=parseInt(this.value); save();" class="text-[9px] font-black uppercase px-2 py-1 rounded bg-black/40 text-white border border-white/10 outline-none">${Object.entries(pMap).map(([v, t]) => `<option value="${v}" ${i.priority==v?'selected':''}>${t}</option>`).join('')}</select><span class="notes-trigger" onclick="const ta=document.getElementById('note-${i.id}'); ta.classList.toggle('active'); if(ta.classList.contains('active')) ta.focus();">Notes +</span><select onchange="items.find(x=>x.id===${i.id}).status=this.value; save();" class="text-[9px] font-black uppercase px-2 py-1 rounded bg-black/40 text-white border border-white/10 flex-1 outline-none"><option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option><option value="in-progress" ${i.status==='in-progress'?'selected':''}>In Progress</option><option value="done" ${i.status==='done'?'selected':''}>Done</option></select><button onclick="confirmDelete(this, ${i.id})" class="text-white text-[9px] font-black px-2 py-1 bg-red-600/40 rounded border border-white/10 transition-all">DEL</button></div><textarea id="note-${i.id}" class="notes-area relative z-10 ${nActive?'active':''}" placeholder="..." oninput="autoExpand(this, ${i.id})" onblur="save()">${i.notes || ''}</textarea></div>`; }); container.innerHTML += section + `</div></section>`; }); }
+        function render() { 
+            const container = document.getElementById('tables-container'); container.innerHTML = ''; const s = document.getElementById('sort-order').value; 
+            const cats = { vidya: '🎮 GAMES', movie: '🎥 CINEMA', tv: '📺 SERIES' }, pMap = { 1: 'IMM', 2: 'HI', 3: 'MED', 4: 'LOW' }; 
+            Object.entries(cats).forEach(([key, label]) => { 
+                let list = items.filter(i => i.category === key); 
+                list = showAll ? list.filter(i => i.status === 'done') : list.filter(i => i.status !== 'done'); 
+                list.sort((a,b) => { 
+                    if(s==='priority') return a.priority - b.priority; 
+                    if(s==='recent') return b.id - a.id; 
+                    if(s==='rating') return b.score - a.score; 
+                    if(s==='release') return parseInt(b.release) - parseInt(a.release); 
+                    if(s==='genre') return (a.genre || "").localeCompare(b.genre || ""); 
+                    return 0; 
+                });
+                if (list.length === 0) return; const isCol = collapsed[key]; 
+                let section = `<section><div onclick="collapsed['${key}']=!collapsed['${key}']; save();" class="flex items-center gap-2 mb-2 cursor-pointer"><h2 class="text-[10px] font-black tracking-widest">${label} ${isCol ? '⊕' : ''}</h2></div><div style="display:${isCol?'none':'block'}" class="space-y-2">`;
+                list.forEach(i => { 
+                    const nActive = i.notes && i.notes.length > 0; 
+                    section += `<div class="media-card card-${key} priority-bg-${i.priority} p-3"><div class="category-watermark">${key}</div><div class="flex justify-between items-start relative z-10"><div><h3 class="font-black text-white uppercase text-sm leading-tight">${i.title}</h3><div class="text-[9px] text-white/60 font-bold uppercase tracking-wider">${i.genre} • ${i.release} • ${i.runtime}</div></div><div class="flex items-center gap-3"><button onclick="window.open('https://www.youtube.com/results?search_query=${encodeURIComponent(i.title + ' official trailer')}', '_blank')" class="trailer-btn">▶</button><span class="font-mono text-lg text-white font-black leading-none">${i.score}</span></div></div><div class="mt-2 flex items-center gap-2 relative z-10"><select onchange="items.find(x=>x.id===${i.id}).priority=parseInt(this.value); save();" class="text-[9px] font-black uppercase px-2 py-1 rounded bg-black/40 text-white border border-white/10 outline-none">${Object.entries(pMap).map(([v, t]) => `<option value="${v}" ${i.priority==v?'selected':''}>${t}</option>`).join('')}</select><span class="notes-trigger" onclick="const ta=document.getElementById('note-${i.id}'); ta.classList.toggle('active'); if(ta.classList.contains('active')) ta.focus();">Notes +</span><select onchange="items.find(x=>x.id===${i.id}).status=this.value; save();" class="text-[9px] font-black uppercase px-2 py-1 rounded bg-black/40 text-white border border-white/10 flex-1 outline-none"><option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option><option value="in-progress" ${i.status==='in-progress'?'selected':''}>In Progress</option><option value="done" ${i.status==='done'?'selected':''}>Done</option></select><button onclick="confirmDelete(this, ${i.id})" class="text-white text-[9px] font-black px-2 py-1 bg-red-600/40 rounded border border-white/10 transition-all">DEL</button></div><textarea id="note-${i.id}" class="notes-area relative z-10 ${nActive?'active':''}" placeholder="..." oninput="autoExpand(this, ${i.id})" onblur="save()">${i.notes || ''}</textarea></div>`; 
+                }); 
+                container.innerHTML += section + `</div></section>`; 
+            }); 
+        }
         render(); pullFromCloud();
     </script>
 </body>
