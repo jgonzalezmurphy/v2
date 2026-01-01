@@ -5,56 +5,56 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        :root { --bg: #64748b; }
-        body { background-color: var(--bg) !important; color: #f1f5f9; font-family: 'Inter', sans-serif; margin: 0; padding: 1rem; min-height: 100vh; }
-        .media-card { position: relative; border: 1px solid rgba(255, 255, 255, 0.15); backdrop-filter: blur(20px); border-radius: 12px; overflow: hidden; margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-        .priority-bg-1 { background: linear-gradient(135deg, rgba(127, 29, 29, 0.9) 0%, rgba(15, 23, 42, 0.98) 100%); }
-        .priority-bg-2 { background: linear-gradient(135deg, rgba(120, 53, 15, 0.9) 0%, rgba(15, 23, 42, 0.98) 100%); }
-        .priority-bg-3 { background: linear-gradient(135deg, rgba(30, 58, 138, 0.9) 0%, rgba(15, 23, 42, 0.98) 100%); }
-        .priority-bg-4 { background: rgba(15, 23, 42, 0.85); }
+        :root { --bg: #b3d1ff; }
+        body { background-color: var(--bg) !important; color: #1e293b; font-family: 'Inter', sans-serif; margin: 0; padding: 1rem; min-height: 100vh; }
+        .media-card { position: relative; border: 1px solid rgba(255, 255, 255, 0.4); backdrop-filter: blur(20px); border-radius: 12px; overflow: hidden; margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+        .priority-bg-1 { background: linear-gradient(135deg, rgba(153, 27, 27, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); }
+        .priority-bg-2 { background: linear-gradient(135deg, rgba(146, 64, 14, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); }
+        .priority-bg-3 { background: linear-gradient(135deg, rgba(30, 58, 138, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); }
+        .priority-bg-4 { background: rgba(15, 23, 42, 0.9); }
         .card-vidya { border-left: 5px solid #fbbf24; }
         .card-movie { border-left: 5px solid #ef4444; }
         .card-tv { border-left: 5px solid #10b981; }
-        .category-watermark { position: absolute; top: 2px; right: 8px; font-size: 2.8rem; font-weight: 950; opacity: 0.08; pointer-events: none; font-style: italic; text-transform: uppercase; z-index: 0; line-height: 1; color: white; }
-        .glass { background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 25px rgba(0,0,0,0.2); }
-        #status-log { font-family: monospace; font-size: 10px; color: #cbd5e1; text-align: center; margin-top: 8px; font-weight: bold; opacity: 0.7; }
+        .category-watermark { position: absolute; top: 2px; right: 8px; font-size: 2.8rem; font-weight: 950; opacity: 0.1; pointer-events: none; font-style: italic; text-transform: uppercase; z-index: 0; line-height: 1; color: white; }
+        .glass { background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
+        #status-log { font-family: monospace; font-size: 10px; color: #1e40af; text-align: center; margin-top: 8px; font-weight: bold; }
         @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.1); } }
         .syncing #vault-logo { animation: pulse 1s infinite; }
-        .notes-trigger { font-size: 8px; font-weight: 900; color: #94a3b8; letter-spacing: 0.1em; cursor: pointer; margin-top: 8px; display: inline-block; }
-        .notes-area { background: rgba(0,0,0,0.3); border: 1px solid rgba(255,255,255,0.1); color: #f1f5f9; font-size: 11px; width: 100%; border-radius: 6px; padding: 0; outline: none; resize: none; overflow: hidden; height: 0; opacity: 0; margin: 0; transition: opacity 0.2s ease-out; }
+        .notes-trigger { font-size: 8px; font-weight: 900; color: #38bdf8; letter-spacing: 0.1em; cursor: pointer; margin-top: 8px; display: inline-block; }
+        .notes-area { background: rgba(0,0,0,0.4); border: 1px solid rgba(255,255,255,0.1); color: #ffffff; font-size: 11px; width: 100%; border-radius: 6px; padding: 0; outline: none; resize: none; overflow: hidden; height: 0; opacity: 0; margin: 0; transition: opacity 0.2s ease-out; }
         .notes-area:focus, .notes-area:not(:placeholder-shown) { height: auto; min-height: 40px; padding: 8px; margin-top: 4px; margin-bottom: 4px; opacity: 1; }
-        .btn-confirm { background-color: #ef4444 !important; color: white !important; border-color: transparent !important; }
+        .btn-confirm { background-color: #ef4444 !important; color: white !important; }
     </style>
 </head>
 <body>
     <div class="max-w-3xl mx-auto pb-32" id="app-root">
         <header class="mb-6 flex justify-between items-end">
             <div>
-                <h1 id="vault-logo" class="text-3xl font-black text-white italic tracking-tighter drop-shadow-lg">VAULT</h1>
-                <p class="text-white/60 text-[10px] uppercase font-bold tracking-[0.2em]">Archive 2026</p>
+                <h1 id="vault-logo" class="text-3xl font-black text-slate-900 italic tracking-tighter">VAULT</h1>
+                <p class="text-slate-700 text-[10px] uppercase font-bold tracking-[0.2em]">Archive 2026</p>
             </div>
             <div class="flex gap-2">
-                <button onclick="toggleCompleted()" id="btn-history" class="text-white bg-slate-900/60 text-[10px] uppercase font-black px-3 py-1 rounded-full border border-white/10">History</button>
-                <button onclick="setupCloud()" class="text-white text-[10px] uppercase font-black px-3 py-1 bg-slate-700/40 rounded-full border border-white/10">Cloud</button>
+                <button onclick="toggleCompleted()" id="btn-history" class="text-white bg-slate-800 text-[10px] uppercase font-black px-3 py-1 rounded-full">History</button>
+                <button onclick="setupCloud()" class="text-white text-[10px] uppercase font-black px-3 py-1 bg-blue-700 rounded-full">Cloud</button>
             </div>
         </header>
         <div class="glass p-5 rounded-3xl mb-12">
             <div class="grid grid-cols-1 gap-4">
-                <input id="title" type="text" placeholder="Entry Title..." class="bg-black/40 border border-white/10 p-4 rounded-xl text-white w-full outline-none placeholder-white/30">
+                <input id="title" type="text" placeholder="Entry Title..." class="bg-black/40 border border-white/10 p-4 rounded-xl text-white w-full outline-none placeholder-white/50">
                 <div class="grid grid-cols-2 gap-3">
-                    <select id="category" class="bg-slate-800/90 p-3 rounded-xl text-xs text-white font-black uppercase outline-none">
+                    <select id="category" class="bg-slate-800 p-3 rounded-xl text-xs text-white font-black uppercase outline-none">
                         <option value="movie">🎥 Movie</option>
                         <option value="tv">📺 TV Show</option>
                         <option value="vidya" selected>🎮 Video Game</option>
                     </select>
-                    <select id="priority" class="bg-slate-800/90 p-3 rounded-xl text-xs text-white font-black uppercase outline-none">
+                    <select id="priority" class="bg-slate-800 p-3 rounded-xl text-xs text-white font-black uppercase outline-none">
                         <option value="1">Immediate</option>
                         <option value="2">High</option>
                         <option value="3" selected>Medium</option>
                         <option value="4">Low</option>
                     </select>
                 </div>
-                <button onclick="addItem()" class="bg-slate-700 text-white py-4 rounded-xl font-black text-xs uppercase shadow-lg border border-white/10 active:scale-95 transition-transform">Add Entry</button>
+                <button onclick="addItem()" class="bg-blue-600 text-white py-4 rounded-xl font-black text-xs uppercase active:scale-95 transition-transform">Add Entry</button>
                 <div id="status-log">System Ready</div>
             </div>
         </div>
@@ -62,30 +62,22 @@
     </div>
     <script>
         window.addEventListener('beforeinstallprompt', (e) => e.preventDefault());
-        const TMDB_KEY = "f8baa5b950fb92e47e7250e9faaa2a5c";
-        const CLIENT_ID = "8bjq7bqv85pvclvbdlo4ocgff060tp";
-        let items = JSON.parse(localStorage.getItem('media_v1')) || [];
-        let collapsed = JSON.parse(localStorage.getItem('vault_collapsed')) || {};
-        let cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' };
-        let showAll = false, deleteTimeout = null;
+        const TMDB_KEY = "f8baa5b950fb92e47e7250e9faaa2a5c", CLIENT_ID = "8bjq7bqv85pvclvbdlo4ocgff060tp";
+        let items = JSON.parse(localStorage.getItem('media_v1')) || [], collapsed = JSON.parse(localStorage.getItem('vault_collapsed')) || {}, cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' }, showAll = false, deleteTimeout = null;
         function logStatus(msg) { document.getElementById('status-log').innerText = msg; }
         async function save() { 
-            localStorage.setItem('media_v1', JSON.stringify(items)); 
-            localStorage.setItem('vault_collapsed', JSON.stringify(collapsed));
-            render(); 
+            localStorage.setItem('media_v1', JSON.stringify(items)); localStorage.setItem('vault_collapsed', JSON.stringify(collapsed)); render(); 
             if (cloudConfig.token && cloudConfig.gistId) {
                 try { await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { method: "PATCH", headers: { "Authorization": `token ${cloudConfig.token}` }, body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) }); } catch(e) {}
             }
         }
         async function hltbSearchAggressive(originalTitle) {
-            const clean = originalTitle.replace(/[^a-zA-Z0-9\s]/g, '').trim();
-            const words = clean.split(/\s+/);
+            const clean = originalTitle.replace(/[^a-zA-Z0-9\s]/g, '').trim(), words = clean.split(/\s+/);
             for (let i = words.length; i > 0; i--) {
                 const query = words.slice(0, i).join(" ");
                 try {
                     const res = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://howlongtobeat.com/api/search')}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ searchType: "games", searchTerms: query.split(" "), searchPage: 1, size: 5, use_fuzzy: true }) });
-                    const d = await res.json();
-                    if (d.data?.[0]?.comp_main > 0) return Math.round(d.data[0].comp_main / 3600) + 'h';
+                    const d = await res.json(); if (d.data?.[0]?.comp_main > 0) return Math.round(d.data[0].comp_main / 3600) + 'h';
                 } catch(e) { continue; }
             }
             return '--';
@@ -102,8 +94,7 @@
                     const r = await fetch(`https://api.themoviedb.org/3/search/${item.category}?api_key=${TMDB_KEY}&query=${encodeURIComponent(item.title)}`);
                     const d = await r.json();
                     if (d.results?.[0]) {
-                        const m = d.results[0];
-                        const det = await (await fetch(`https://api.themoviedb.org/3/${item.category}/${m.id}?api_key=${TMDB_KEY}`)).json();
+                        const m = d.results[0], det = await (await fetch(`https://api.themoviedb.org/3/${item.category}/${m.id}?api_key=${TMDB_KEY}`)).json();
                         item.title = m.title || m.name; item.score = Math.round(m.vote_average * 10); item.release = (m.release_date || m.first_air_date || "").split('-')[0];
                         item.runtime = item.category === 'movie' ? (det.runtime ? det.runtime + 'm' : '--') : (det.episode_run_time?.[0] ? det.episode_run_time[0] + 'm' : '--');
                         item.genre = item.category.toUpperCase();
@@ -118,7 +109,7 @@
             const newItem = { id: Date.now(), title: t, category: c, priority: parseInt(p), status: 'to-do', score: 0, genre: 'Pending', release: '2026', runtime: '--', notes: '' };
             items.push(newItem); document.getElementById('title').value = ''; render(); fetchMetadata(newItem);
         }
-        function toggleCompleted() { showAll = !showAll; document.getElementById('btn-history').style.borderColor = showAll ? 'white' : 'rgba(255,255,255,0.1)'; render(); }
+        function toggleCompleted() { showAll = !showAll; render(); }
         function setupCloud() {
             const t = prompt("GitHub Token:", cloudConfig.token), g = prompt("Gist ID:", cloudConfig.gistId);
             if (t !== null && g !== null) { cloudConfig = { token: t, gistId: g }; localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig)); save(); }
@@ -137,10 +128,10 @@
                 list.sort((a, b) => a.priority - b.priority);
                 if (list.length === 0) return;
                 const isCol = collapsed[key];
-                let section = `<section><div onclick="collapsed['${key}']=!collapsed['${key}']; save();" class="flex items-center gap-2 mb-4 cursor-pointer"><h2 class="text-xs font-black tracking-widest text-white/80 uppercase">${label}</h2></div><div style="display:${isCol?'none':'block'}" class="space-y-3">`;
+                let section = `<section><div onclick="collapsed['${key}']=!collapsed['${key}']; save();" class="flex items-center gap-2 mb-4 cursor-pointer"><h2 class="text-xs font-black tracking-widest text-slate-800 uppercase">${label}</h2></div><div style="display:${isCol?'none':'block'}" class="space-y-3">`;
                 list.forEach(i => {
                     const hasNotes = i.notes && i.notes.length > 0;
-                    section += `<div class="media-card card-${key} priority-bg-${i.priority} p-4"><div class="category-watermark">${key}</div><div class="flex justify-between relative z-10"><div><h3 class="font-black text-white uppercase text-base leading-tight">${i.title}</h3><div class="text-[10px] text-white/60 font-bold uppercase mt-1 tracking-wider">${i.genre} • ${i.release} • ${i.runtime}</div></div><span class="font-mono text-xl text-white font-black drop-shadow-md">${i.score}</span></div><label class="notes-trigger relative z-10" onclick="document.getElementById('note-${i.id}').focus()">NOTES +</label><textarea id="note-${i.id}" class="notes-area relative z-10" placeholder="..." oninput="autoExpand(this, ${i.id})" onblur="save()" style="${hasNotes ? 'height:auto; min-height:40px; padding:8px; margin-top:4px; margin-bottom:4px; opacity:1;' : ''}">${i.notes || ''}</textarea><div class="flex gap-2 relative z-10 mt-3"><select onchange="items.find(x=>x.id===${i.id}).priority=parseInt(this.value); save();" class="text-[10px] font-black uppercase px-2 py-2 rounded bg-black/40 text-white border border-white/10 outline-none">${Object.entries(pMap).map(([v, t]) => `<option value="${v}" ${i.priority==v?'selected':''}>${t}</option>`).join('')}</select><select onchange="items.find(x=>x.id===${i.id}).status=this.value; save();" class="text-[10px] font-black uppercase px-2 py-2 rounded bg-black/40 text-white border border-white/10 flex-1 outline-none"><option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option><option value="in-progress" ${i.status==='in-progress'?'selected':''}>In Progress</option><option value="done" ${i.status==='done'?'selected':''}>Done</option></select><button onclick="confirmDelete(this, ${i.id})" class="text-white text-[10px] font-black px-3 py-2 bg-red-600/40 rounded border border-white/10 transition-all">DEL</button></div></div>`;
+                    section += `<div class="media-card card-${key} priority-bg-${i.priority} p-4"><div class="category-watermark">${key}</div><div class="flex justify-between relative z-10"><div><h3 class="font-black text-white uppercase text-base leading-tight">${i.title}</h3><div class="text-[10px] text-white/70 font-bold uppercase mt-1 tracking-wider">${i.genre} • ${i.release} • ${i.runtime}</div></div><span class="font-mono text-xl text-white font-black drop-shadow-md">${i.score}</span></div><label class="notes-trigger relative z-10" onclick="document.getElementById('note-${i.id}').focus()">NOTES +</label><textarea id="note-${i.id}" class="notes-area relative z-10" placeholder="..." oninput="autoExpand(this, ${i.id})" onblur="save()" style="${hasNotes ? 'height:auto; min-height:40px; padding:8px; margin-top:4px; margin-bottom:4px; opacity:1;' : ''}">${i.notes || ''}</textarea><div class="flex gap-2 relative z-10 mt-3"><select onchange="items.find(x=>x.id===${i.id}).priority=parseInt(this.value); save();" class="text-[10px] font-black uppercase px-2 py-2 rounded bg-black/40 text-white border border-white/10 outline-none">${Object.entries(pMap).map(([v, t]) => `<option value="${v}" ${i.priority==v?'selected':''}>${t}</option>`).join('')}</select><select onchange="items.find(x=>x.id===${i.id}).status=this.value; save();" class="text-[10px] font-black uppercase px-2 py-2 rounded bg-black/40 text-white border border-white/10 flex-1 outline-none"><option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option><option value="in-progress" ${i.status==='in-progress'?'selected':''}>In Progress</option><option value="done" ${i.status==='done'?'selected':''}>Done</option></select><button onclick="confirmDelete(this, ${i.id})" class="text-white text-[10px] font-black px-3 py-2 bg-red-600/40 rounded border border-white/10 transition-all">DEL</button></div></div>`;
                 });
                 container.innerHTML += section + `</div></section>`;
             });
