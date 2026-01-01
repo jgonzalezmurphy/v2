@@ -15,8 +15,17 @@
         :root { --bg: #e6faff; }
         body { background-color: var(--bg) !important; color: #1e293b; font-family: 'Inter', sans-serif; margin: 0; padding: 1rem; min-height: 100vh; }
         
-        /* High Contrast Category Headers - Darker & Heavier */
-        h2 { color: #000000 !important; font-weight: 950 !important; text-transform: uppercase; letter-spacing: 0.15em; font-size: 0.85rem; }
+        /* High Contrast Category Headers - Fixed Syntax */
+        h2 { 
+            color: #000000 !important; 
+            font-weight: 950 !important; 
+            text-transform: uppercase; 
+            letter-spacing: 0.12em; 
+            font-size: 1.1rem !important; 
+            line-height: 1.2; 
+            margin-bottom: 0.75rem;
+            display: block;
+        }
 
         .media-card { position: relative; border: 1px solid rgba(255, 255, 255, 0.4); backdrop-filter: blur(20px); border-radius: 12px; overflow: hidden; margin-bottom: 1rem; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
         .priority-bg-1 { background: linear-gradient(135deg, rgba(153, 27, 27, 0.95) 0%, rgba(15, 23, 42, 0.98) 100%); }
@@ -32,7 +41,7 @@
         .glass { background: rgba(15, 23, 42, 0.88); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.2); box-shadow: 0 8px 25px rgba(0,0,0,0.15); }
         
         /* Status Log updated to White */
-        #status-log { font-family: monospace; font-size: 10px; color: #ffffff; text-align: center; margin-top: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; }
+        #status-log { font-family: monospace; font-size: 10px; color: #ffffff !important; text-align: center; margin-top: 8px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; }
         
         @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.1); } }
         .syncing #vault-logo { animation: pulse 1s infinite; }
@@ -116,7 +125,7 @@
             try {
                 if (item.category === 'vidya') {
                     const token = localStorage.getItem('igdb_token');
-                    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.igdb.com/v4/games')}`, { method: 'POST', headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` }, body: `search "${item.title}"; fields name, rating, first_release_date, genres.name; limit 1;` });
+                    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.igdb.com/v4/games')}`, { method: 'POST', headers: { 'Content-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` }, body: `search "${item.title}"; fields name, rating, first_release_date, genres.name; limit 1;` });
                     const d = await r.json();
                     if (d?.[0]) { item.title = d[0].name; item.score = d[0].rating ? Math.round(d[0].rating) : 0; item.release = d[0].first_release_date ? new Date(d[0].first_release_date * 1000).getFullYear() : "2026"; item.genre = d[0].genres?.[0]?.name || "Game"; item.runtime = await hltbSearchAggressive(item.title); }
                 } else {
