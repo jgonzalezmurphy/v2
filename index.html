@@ -3,11 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="VAULT">
+    <meta name="theme-color" content="#020617">
+    
+    <link rel="manifest" href="manifest.json">
+    
     <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text y='75' x='20' font-family='Arial' font-weight='bold' font-size='80' fill='white'>V</text></svg>">
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' fill='black'/><text y='75' x='20' font-family='Arial' font-weight='bold' font-size='80' fill='white'>V</text></svg>">
+    
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         :root { --bg: #e6faff; --text: #000000; --header: #000000; --card-border: rgba(0,0,0,0.3); --glass: rgba(15, 23, 42, 0.98); --notes-btn: #0369a1; --subtext: #475569; }
@@ -123,6 +130,13 @@
         let items = JSON.parse(localStorage.getItem('media_v1')) || [], collapsed = JSON.parse(localStorage.getItem('vault_collapsed')) || {}, cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' }, catOrder = JSON.parse(localStorage.getItem('vault_cat_order')) || ['vidya', 'movie', 'tv'], searchTimeout, hiddenPriorities = JSON.parse(localStorage.getItem('vault_hidden_pri')) || { vidya:[], movie:[], tv:[] };
         if(localStorage.getItem('vault_dark') === 'true') document.body.classList.add('dark-mode');
         document.getElementById('sort-order').value = localStorage.getItem('vault_sort') || 'priority';
+
+        // REGISTRATION FOR YOUR PHYSICAL sw.js FILE
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js')
+                .then(() => console.log("Service Worker Registered"))
+                .catch(err => console.log("SW Registration Failed", err));
+        }
 
         function logStatus(m) { document.getElementById('status-log').innerText = m; }
         function setSyncing(state) { state ? document.body.classList.add('syncing') : document.body.classList.remove('syncing'); }
