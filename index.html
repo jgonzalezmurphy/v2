@@ -62,10 +62,7 @@
         .text-white\/50{color:rgba(255,255,255,.5)}.text-white\/70{color:rgba(255,255,255,.7)}.placeholder-white\/60::placeholder{color:rgba(255,255,255,.6)}
         .text-blue-400{color:#60a5fa}.text-red-400{color:#f87171}.text-\[8px\]{font-size:8px}.text-\[9px\]{font-size:9px}.text-\[10px\]{font-size:10px}.max-sm{max-width:24rem}.tracking-wider{letter-spacing:.05em}.flex-shrink-0{flex-shrink:0}
         
-        /* CHANGED: New class for adaptive background on settings icon */
         .adaptive-bg { background-color: var(--bg); transition: background-color 0.3s; border-radius: 12px; }
-        
-        /* CHANGED: Optimization for long lists (Performance) */
         #tables-container { content-visibility: auto; contain-intrinsic-size: 1px 1000px; }
     </style>
 </head>
@@ -136,12 +133,10 @@
     </div>
 
     <script>
-        // CHANGED: Added RAWG_KEY to fix "Network Error". You MUST insert a key here.
-        const TMDB_KEY="f8baa5b950fb92e47e7250e9faaa2a5c";
-        const RAWG_KEY="INSERT_YOUR_KEY_HERE"; 
-
+        const TMDB_KEY="f8baa5b950fb92e47e7250e9faaa2a5c"; // Public read-only key, keeping it.
+        
         let items=JSON.parse(localStorage.getItem('media_v1'))||[],collapsed=JSON.parse(localStorage.getItem('vault_collapsed'))||{},cloudConfig=JSON.parse(localStorage.getItem('vault_cloud'))||{token:'',gistId:''},catOrder=JSON.parse(localStorage.getItem('vault_cat_order'))||['vidya','movie','tv'],searchTimeout,hiddenPriorities=JSON.parse(localStorage.getItem('vault_hidden_pri'))||{vidya:[],movie:[],tv:[]},showArchive=false;
-        let deleteTimers = {}; // CHANGED: For double click logic
+        let deleteTimers = {};
 
         if(localStorage.getItem('vault_dark')==='true')document.body.classList.add('dark-mode');
 
@@ -162,33 +157,52 @@
             try{
                 let results=[];
                 if(cat==='vidya'){
-                    // CHANGED: Added RAWG_KEY to the URL to fix network error
-                    const r=await fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(title)}&page_size=20`);
-                    const d=await r.json();
-                    if(d.results){results=d.results.map(g=>({title:g.name,year:g.released?g.released.split('-')[0]:'TBA',id:g.id,img:g.background_image||'',rating:g.rating||0,genres:g.genres||[]}))}
-                }else{
+                    // FIX: Using Wikipedia API which has open CORS and no Key requirement
+                    const url = `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=0&gsrlimit=8&gsrsearch=${encodeURIComponent(title + " video game")}&prop=pageimages|extracts&pithumbsize=200&exintro&explaintext&exsentences=1`;
+                    const r = await fetch(url);
+                    const d = await r.json();
+                    if(d.query && d.query.pages) {
+                        results = Object.values(d.query.pages).map(p => {
+                            const match = (p.extract || "").match(/\b(19|20)\d{2}\b/);
+                            return {
+                                title: p.title.replace(/ \(.*video game.*\)/i, '').replace(/ \(video game\)/i, ''),
+                                year: match ? match[0] : 'TBA',
+                                id: p.pageid,
+                                img: p.thumbnail ? p.thumbnail.source : '',
+                                type: 'wiki'
+                            };
+                        });
+                    }
+                } else {
                     const r=await fetch(`https://api.themoviedb.org/3/search/${cat}?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}`);
                     const d=await r.json();
-                    if(d.results)results=d.results.map(m=>({title:m.title||m.name,year:(m.release_date||m.first_air_date||'TBA').split('-')[0],id:m.id,img:m.poster_path?`https://image.tmdb.org/t/p/w92${m.poster_path}`:''}))
+                    if(d.results)results=d.results.map(m=>({title:m.title||m.name,year:(m.release_date||m.first_air_date||'TBA').split('-')[0],id:m.id,img:m.poster_path?`https://image.tmdb.org/t/p/w92${m.poster_path}`:'',type:'tmdb'}))
                 }
+                
                 dropdown.innerHTML=`<div onclick="finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="live-item text-blue-400 italic text-xs font-black">USE RAW: "${title}"</div>`;
-                results.forEach(res=>{const el=document.createElement('div');el.className='live-item';el.innerHTML=`<img src="${res.img||''}" class="live-img"><div><div class="font-bold text-sm">${res.title}</div><div class="text-[10px] opacity-50">${res.year}</div></div>`;el.onclick=()=>processSelection(cat,res.id,res.title,res);dropdown.appendChild(el)})
-            }catch(e){console.error('Search error:',e);dropdown.innerHTML=`<div class="p-3 text-xs text-red-400">Network Error</div><div onclick="finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="live-item text-blue-400 italic text-xs font-black">USE RAW: "${title}"</div>`}
+                results.forEach(res=>{
+                    const el=document.createElement('div');
+                    el.className='live-item';
+                    el.innerHTML=`<img src="${res.img||'https://placehold.co/40x55/222/FFF?text=GAME'}" class="live-img"><div><div class="font-bold text-sm">${res.title}</div><div class="text-[10px] opacity-50">${res.year}</div></div>`;
+                    el.onclick=()=>processSelection(cat,res.id,res.title,res);
+                    dropdown.appendChild(el)
+                });
+            } catch(e){
+                console.error(e);
+                dropdown.innerHTML=`<div class="p-3 text-xs text-red-400">Network Error (Check Connection)</div><div onclick="finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="live-item text-blue-400 italic text-xs font-black">USE RAW: "${title}"</div>`
+            }
         }
 
         async function processSelection(cat,id,title,searchResult){
             document.getElementById('live-results').classList.remove('active');
-            try{
-                let score=0,year='2026',genre='Genre',runtime='--';
+            let score=0,year=searchResult.year||'2026',genre='Game',runtime='--';
+            
+            try {
                 if(cat==='vidya'){
-                    // CHANGED: Added RAWG_KEY here as well
-                    const r=await fetch(`https://api.rawg.io/api/games/${id}?key=${RAWG_KEY}`);
-                    const d=await r.json();
-                    score=d.rating?Math.round(d.rating*20):0;
-                    year=d.released?d.released.split('-')[0]:searchResult.year||'2026';
-                    genre=d.genres?.[0]?.name||'Game';
-                    runtime='--'
-                }else{
+                    // Wikipedia doesn't give clean genres/scores easily via API, so we set defaults
+                    year = searchResult.year;
+                    genre = 'Game'; 
+                } else {
                     const det=await(await fetch(`https://api.themoviedb.org/3/${cat}/${id}?api_key=${TMDB_KEY}`)).json();
                     score=Math.round(det.vote_average*10);
                     year=(det.release_date||det.first_air_date||"").split('-')[0];
@@ -196,8 +210,9 @@
                     if(cat==='movie')runtime=det.runtime?det.runtime+'m':'--';
                     else runtime=(det.number_of_seasons?'S'+det.number_of_seasons:'S1')+' E'+(det.number_of_episodes||'--')
                 }
-                finalizeAdd(title,year,score,genre,runtime)
-            }catch(e){console.error('Process selection error:',e);finalizeAdd(title,'2026',0,cat==='vidya'?'Game':cat.toUpperCase(),'--')}
+            } catch(e) { console.log("Detail fetch failed, using fallback"); }
+            
+            finalizeAdd(title,year,score,genre,runtime)
         }
 
         function finalizeAdd(title,year,score,genre,runtime){const newItem={id:Date.now(),title,category:document.getElementById('category').value,priority:parseInt(document.getElementById('priority').value),status:'to-do',score,genre,release:year,runtime,notes:''};items.push(newItem);document.getElementById('title').value='';document.getElementById('live-results').classList.remove('active');save()}
@@ -218,11 +233,10 @@
 
         function renderSettings(){const list=document.getElementById('cat-order-list'),labels={vidya:'Games',movie:'Cinema',tv:'Series'};list.innerHTML='';catOrder.forEach((cat,idx)=>{list.innerHTML+=`<div class="flex justify-between items-center bg-black/40 p-3 rounded-xl text-white text-[10px] font-black uppercase"><span>${labels[cat]}</span><div class="flex gap-2"><button onclick="moveCategory(${idx},-1)">▲</button><button onclick="moveCategory(${idx},1)">▼</button></div></div>`})}
 
-        // CHANGED: New function to handle double-click/safety delete
         function requestDelete(id, btn) {
             if(btn.innerText === 'DEL') {
                 btn.innerText = 'SURE?';
-                btn.style.background = '#dc2626'; // red
+                btn.style.background = '#dc2626';
                 deleteTimers[id] = setTimeout(() => {
                     btn.innerText = 'DEL';
                     btn.style.background = '';
@@ -249,15 +263,12 @@
                 let section=`<section><div onclick="collapsed['${key}']=!collapsed['${key}'];save()" class="flex items-center mt-6 mb-2 cursor-pointer select-none"><h2>${cats[key]} ${collapsed[key]?'⊕':''}</h2>${pToggles}</div><div style="display:${collapsed[key]?'none':'block'}" class="space-y-2">`;
                 list.forEach(i=>{
                     const bgClass=i.status==='done'?'priority-bg-done':`priority-bg-${i.priority}`;
-                    // CHANGED: text-[8px] became text-[10px] for metadata.
-                    // CHANGED: Delete button now calls requestDelete()
                     section+=`<div class="media-card card-${key} ${bgClass} p-3">${s==='manual'&&!showArchive?`<div class="absolute right-0 top-10 flex flex-col gap-1 z-20"><button onclick="moveItem(${i.id},-1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▲</button><button onclick="moveItem(${i.id},1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▼</button></div>`:''}<div class="category-watermark">${key}</div><div class="flex justify-between items-start relative z-10"><div><h3 class="font-bold text-white uppercase text-sm leading-tight">${i.title}</h3><div class="text-[10px] text-white/70 uppercase tracking-wider">${i.genre} • ${i.release} • ${i.runtime}</div></div><div class="flex items-center gap-3"><button onclick="window.open('https://www.youtube.com/results?search_query=${encodeURIComponent(i.title+' official trailer')}','_blank')" class="bg-white/20 w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold border border-white/40">▶</button><span class="font-mono text-lg text-white font-black leading-none">${i.score}</span></div></div><div class="mt-2 flex items-center gap-2 relative z-10"><select onchange="items.find(x=>x.id===${i.id}).priority=parseInt(this.value);save()" class="text-[9px] uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 outline-none">${Object.entries(pMap).map(([v,t])=>`<option value="${v}" ${i.priority==v?'selected':''}>${t}</option>`).join('')}</select><span class="notes-trigger" onclick="document.getElementById('note-${i.id}').classList.toggle('active')">Notes +</span><select onchange="items.find(x=>x.id===${i.id}).status=this.value;save()" class="text-[9px] uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 flex-1 outline-none"><option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option><option value="done" ${i.status==='done'?'selected':''}>Done</option></select><button onclick="requestDelete(${i.id}, this)" class="text-white text-[9px] font-black px-2 py-1 bg-white/10 rounded border border-white/10 transition-colors duration-200">DEL</button></div><textarea id="note-${i.id}" class="notes-area relative z-10 ${i.notes?'active':''}" placeholder="..." oninput="autoExpand(this,${i.id})" onblur="save()">${i.notes||''}</textarea></div>`
                 });
                 container.innerHTML+=section+`</div></section>`
             })
         }
         renderSettings();render();
-        // CHANGED: Moved pullFromCloud to setTimeout to allow initial rendering to complete (Faster Open)
         setTimeout(pullFromCloud, 0);
     </script>
 </body>
