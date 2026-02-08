@@ -48,15 +48,10 @@
         .thin-search { background: transparent; border: none; border-bottom: 3px solid var(--header); width: 100%; font-size: 14px; padding: 10px 0; outline: none; color: var(--header); font-weight: 950; margin-bottom: 1.5rem; }
         .thin-search::placeholder { color: var(--header); opacity: 0.7; }
         
-        .notes-trigger { font-size: 10px; font-weight: 1000; color: var(--notes-btn); letter-spacing: 0.05em; cursor: pointer; text-transform: uppercase; text-decoration: underline; }
-        .notes-area { background: rgba(0,0,0,0.85); border: 1px solid rgba(255,255,255,0.4); color: #ffffff; font-size: 12px; width: 100%; border-radius: 6px; outline: none; resize: none; overflow: hidden; height: 0; opacity: 0; transition: all 0.2s; }
-        .notes-area.active { height: auto; min-height: 45px; padding: 10px; margin-top: 10px; opacity: 1; }
-        
         #settings-menu { position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 2000; display: none; align-items: center; justify-content: center; backdrop-filter: blur(10px); }
         #settings-menu.active { display: flex; }
         
-        .pri-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); cursor: pointer; transition: all 0.2s; box-shadow: none !important; }
-        .pri-dot:hover { transform: scale(1.2); }
+        .pri-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); cursor: pointer; transition: all 0.2s; }
     </style>
 </head>
 <body id="body-root">
@@ -95,10 +90,7 @@
                         <option value="priority">Sort: Pri</option><option value="recent">Sort: New</option><option value="rating">Sort: Sc</option><option value="release">Sort: Yr</option><option value="manual">Sort: Man</option>
                     </select>
                 </div>
-                <div class="flex gap-2">
-                    <button onclick="pickRandom()" class="bg-purple-600 text-white p-3 rounded-xl font-black text-sm uppercase shadow-lg active:scale-95 border-b-4 border-purple-800 w-16 flex items-center justify-center">🎲</button>
-                    <button onclick="finalizeAdd(document.getElementById('title').value, '2026', 0, 'Custom', '--')" class="bg-blue-600 text-white py-3 rounded-xl font-black text-xs uppercase shadow-lg active:scale-95 border-b-4 border-blue-800 flex-1">Add</button>
-                </div>
+                <button onclick="finalizeAdd(document.getElementById('title').value, '2026', 0, 'Custom', '--')" class="bg-blue-600 text-white py-3 rounded-xl font-black text-xs uppercase shadow-lg active:scale-95 border-b-4 border-blue-800">Add</button>
                 <div id="status-log" class="text-white text-[10px] text-center font-bold uppercase mt-2">Ready</div>
             </div>
         </div>
@@ -109,22 +101,16 @@
         <div class="bg-slate-900 w-11/12 max-sm p-6 rounded-2xl border border-white/10 shadow-2xl">
             <h3 class="text-white font-black uppercase text-xl mb-6 text-center">Settings</h3>
             <div class="grid grid-cols-2 gap-3 mb-6">
-                <button id="archive-toggle-btn" onclick="showArchive=!showArchive; this.innerText=showArchive?'Show Active':'Show Archive'; render();" class="bg-amber-600 text-white p-4 rounded-xl text-[10px] font-black uppercase border border-white/5">Show Archive</button>
+                <button onclick="showArchive=!showArchive; render();" class="bg-amber-600 text-white p-4 rounded-xl text-[10px] font-black uppercase border border-white/5">Toggle Archive</button>
                 <button onclick="toggleTheme()" class="bg-slate-800 text-white p-4 rounded-xl text-[10px] font-black uppercase border border-white/5">Night Mode</button>
                 <button onclick="setupCloud()" class="bg-slate-800 text-white p-4 rounded-xl text-[10px] font-black uppercase border border-white/5">Cloud</button>
                 <button onclick="downloadBackup()" class="bg-slate-800 text-white p-4 rounded-xl text-[10px] font-black uppercase border border-white/5">Export</button>
                 <button onclick="document.getElementById('importFile').click()" class="bg-slate-800 text-white p-4 rounded-xl text-[10px] font-black uppercase border border-white/5">Import</button>
             </div>
-            <div id="cat-order-list" class="space-y-2 mb-6"></div>
             <button onclick="document.getElementById('settings-menu').classList.remove('active')" class="w-full bg-white text-black p-4 rounded-xl font-black text-xs uppercase shadow-xl">Close</button>
         </div>
     </div>
     <input type="file" id="importFile" class="hidden" onchange="importBackup(this)">
-
-    <div id="random-modal" onclick="this.style.display='none'" class="fixed inset-0 z-[3000] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-6 cursor-pointer" style="display: none;">
-        <div id="random-content" class="text-center w-full max-w-lg"></div>
-        <div class="mt-12 text-white/50 text-xs font-mono animate-pulse">TAP ANYWHERE TO CLOSE</div>
-    </div>
 
     <script>
         // --- API CONFIGURATION ---
@@ -133,62 +119,22 @@
         const CLIENT_SECRET = "96q58dkxsz3cfe853ckpn9opqy6sli"; // <--- UPDATE THIS
         // -------------------------
 
-        let items = JSON.parse(localStorage.getItem('media_v1')) || [], collapsed = JSON.parse(localStorage.getItem('vault_collapsed')) || {}, cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' }, catOrder = JSON.parse(localStorage.getItem('vault_cat_order')) || ['vidya', 'movie', 'tv'], searchTimeout, hiddenPriorities = JSON.parse(localStorage.getItem('vault_hidden_pri')) || { vidya:[], movie:[], tv:[] }, showArchive = false;
+        let items = JSON.parse(localStorage.getItem('media_v1')) || [], collapsed = JSON.parse(localStorage.getItem('vault_collapsed')) || {}, cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' }, searchTimeout, showArchive = false;
         if(localStorage.getItem('vault_dark') === 'true') document.body.classList.add('dark-mode');
-        document.getElementById('sort-order').value = localStorage.getItem('vault_sort') || 'priority';
 
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').then(() => console.log("SW Active")).catch(err => console.log("SW Error", err));
-        }
+        async function save() { localStorage.setItem('media_v1', JSON.stringify(items)); render(); if (cloudConfig.token && cloudConfig.gistId) { try { await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { method: "PATCH", headers: { "Authorization": `token ${cloudConfig.token}` }, body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) }); } catch(e) { console.error("Cloud Save Failed"); } } }
+        async function pullFromCloud() { if (!cloudConfig.token || !cloudConfig.gistId) return; try { const res = await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { headers: { "Authorization": `token ${cloudConfig.token}` } }); const data = await res.json(); if (data.files?.["vault.json"]) { items = JSON.parse(data.files["vault.json"].content); render(); } } catch(e) { console.error("Cloud Pull Failed"); } }
 
-        function logStatus(m) { document.getElementById('status-log').innerText = m; }
-        function setSyncing(state) { state ? document.body.classList.add('syncing') : document.body.classList.remove('syncing'); }
         function toggleTheme() { document.body.classList.toggle('dark-mode'); localStorage.setItem('vault_dark', document.body.classList.contains('dark-mode')); render(); }
-        
-        function togglePriority(cat, p) {
-            const arr = hiddenPriorities[cat];
-            if(arr.includes(p)) hiddenPriorities[cat] = arr.filter(x => x !== p);
-            else arr.push(p);
-            localStorage.setItem('vault_hidden_pri', JSON.stringify(hiddenPriorities));
-            render();
-        }
-
-        function pickRandom() {
-            const pool = items.filter(i => {
-                const isDone = i.status === 'done';
-                const isCatCollapsed = collapsed[i.category];
-                const isPriHidden = hiddenPriorities[i.category]?.includes(i.priority);
-                return !isDone && !isCatCollapsed && !isPriHidden;
-            });
-            if (pool.length === 0) { alert("No visible items found!"); return; }
-            const winner = pool[Math.floor(Math.random() * pool.length)];
-            const modal = document.getElementById('random-modal');
-            const content = document.getElementById('random-content');
-            const priColors = {1: 'text-red-500', 2: 'text-orange-500', 3: 'text-blue-500', 4: 'text-slate-500'};
-            const priNames = {1: 'IMMEDIATE', 2: 'HIGH', 3: 'MEDIUM', 4: 'LOW'};
-            const labels = {vidya: 'PLAY THIS', movie: 'WATCH THIS', tv: 'BINGE THIS'};
-            content.innerHTML = `<div class="text-[10px] font-mono text-white/40 mb-4 tracking-[0.5em] uppercase">THE VAULT HAS SPOKEN</div><div class="text-4xl md:text-6xl font-[1000] text-white uppercase leading-none mb-6 break-words">${winner.title}</div><div class="inline-block border border-white/20 px-4 py-2 rounded-lg bg-white/5 backdrop-blur-sm"><div class="text-lg font-bold ${priColors[winner.priority]} uppercase tracking-[0.2em]">${priNames[winner.priority]} PRIORITY</div></div><div class="mt-6 text-sm font-bold text-white/60 uppercase tracking-widest">${labels[winner.category] || 'DO THIS'}</div>`;
-            modal.style.display = 'flex';
-        }
-
-        async function save() { localStorage.setItem('media_v1', JSON.stringify(items)); localStorage.setItem('vault_collapsed', JSON.stringify(collapsed)); render(); if (cloudConfig.token && cloudConfig.gistId) { setSyncing(true); try { await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { method: "PATCH", headers: { "Authorization": `token ${cloudConfig.token}` }, body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) }); logStatus("Cloud Saved"); } catch(e) { logStatus("Sync Failed"); } finally { setSyncing(false); } } }
-        async function pullFromCloud() { if (!cloudConfig.token || !cloudConfig.gistId) return; setSyncing(true); try { const res = await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { headers: { "Authorization": `token ${cloudConfig.token}` } }); const data = await res.json(); if (data.files?.["vault.json"]) { items = JSON.parse(data.files["vault.json"].content); localStorage.setItem('media_v1', JSON.stringify(items)); render(); logStatus("Cloud Synced"); } } catch(e) { logStatus("Offline"); } finally { setSyncing(false); } }
 
         async function refreshIGDBToken() { 
             try { 
-                const res = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://id.twitch.tv/oauth2/token')}`, { 
-                    method: 'POST', 
-                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, 
-                    body: `client_id=${CLIENT_ID}&client_secret=${CLIENT_SECRET}&grant_type=client_credentials` 
-                }); 
-                const d = await res.json(); 
-                if (d.access_token) { 
-                    localStorage.setItem('igdb_token', d.access_token); 
-                    return d.access_token; 
-                } else {
-                    console.error("Token Error:", d);
-                    return null;
-                }
+                // Using AllOrigins Proxy for more reliability in 2026
+                const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://id.twitch.tv/oauth2/token?client_id='+CLIENT_ID+'&client_secret='+CLIENT_SECRET+'&grant_type=client_credentials')}`);
+                const wrapper = await res.json();
+                const d = JSON.parse(wrapper.contents);
+                if (d.access_token) { localStorage.setItem('igdb_token', d.access_token); return d.access_token; }
+                return null;
             } catch(e) { return null; } 
         }
 
@@ -198,29 +144,39 @@
             const title = document.getElementById('title').value.trim(), cat = document.getElementById('category').value, dropdown = document.getElementById('live-results');
             if (title.length < 2) { dropdown.classList.remove('active'); return; }
             dropdown.innerHTML = '<div class="p-3 text-xs text-white/50 italic">Searching...</div>'; dropdown.classList.add('active');
+            
             try {
                 let results = [];
                 if (cat === 'vidya') {
                     let token = localStorage.getItem('igdb_token') || await refreshIGDBToken();
-                    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.igdb.com/v4/games')}`, { 
-                        method: 'POST', 
-                        headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` }, 
-                        body: `fields name, first_release_date, cover.url; search "${title}"; limit 25;` 
+                    const igdbUrl = 'https://api.igdb.com/v4/games';
+                    const igdbBody = `fields name, first_release_date, cover.url; search "${title}"; limit 20;`;
+                    
+                    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(igdbUrl)}`, {
+                        method: 'POST',
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }, // Bypass some blocks
+                        body: JSON.stringify({ 
+                            headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` },
+                            method: 'POST',
+                            body: igdbBody
+                        })
                     });
-                    const d = await r.json(); 
-                    if(d.length === 0 && token) { // Retry once if token failed
-                        localStorage.removeItem('igdb_token');
-                        return performLiveSearch();
-                    }
-                    if(d) results = d.map(g => ({ title: g.name, year: g.first_release_date ? new Date(g.first_release_date*1000).getFullYear() : 'TBA', id: g.id, img: g.cover ? g.cover.url.replace('t_thumb', 't_cover_small') : '' }));
+                    
+                    const wrapper = await res.json();
+                    const d = JSON.parse(wrapper.contents);
+                    
+                    if(d && Array.isArray(d)) {
+                        results = d.map(g => ({ title: g.name, year: g.first_release_date ? new Date(g.first_release_date*1000).getFullYear() : 'TBA', id: g.id, img: g.cover ? g.cover.url.replace('t_thumb', 't_cover_small') : '' }));
+                    } else { throw new Error("Search Error"); }
                 } else {
                     const r = await fetch(`https://api.themoviedb.org/3/search/${cat}?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}`);
                     const d = await r.json(); if(d.results) results = d.results.map(m => ({ title: m.title || m.name, year: (m.release_date || m.first_air_date || 'TBA').split('-')[0], id: m.id, img: m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : '' }));
                 }
+                
                 dropdown.innerHTML = `<div onclick="finalizeAdd('${title.replace(/'/g, "\\'")}', '2026', 0, 'Custom', '--')" class="live-item text-blue-400 italic text-xs font-black">USE RAW: "${title}"</div>`;
                 results.forEach(res => {
                     const el = document.createElement('div'); el.className = 'live-item';
-                    el.innerHTML = `<img src="${res.img || 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII='}" class="live-img"><div><div class="font-bold text-sm">${res.title}</div><div class="text-[10px] opacity-50">${res.year}</div></div>`;
+                    el.innerHTML = `<img src="${res.img || ''}" class="live-img"><div><div class="font-bold text-sm">${res.title}</div><div class="text-[10px] opacity-50">${res.year}</div></div>`;
                     el.onclick = () => processSelection(cat, res.id, res.title);
                     dropdown.appendChild(el);
                 });
@@ -228,62 +184,50 @@
         }
 
         async function processSelection(cat, id, title) {
-            document.getElementById('live-results').classList.remove('active'); setSyncing(true);
+            document.getElementById('live-results').classList.remove('active');
             try {
-                let score=0, genre='Genre', year='2026', runtime='--';
+                let score=0, year='2026', genre='Genre', runtime='--';
                 if(cat === 'vidya') {
                     let token = localStorage.getItem('igdb_token') || await refreshIGDBToken();
-                    const r = await fetch(`https://corsproxy.io/?${encodeURIComponent('https://api.igdb.com/v4/games')}`, { method: 'POST', headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` }, body: `fields name, total_rating, first_release_date, genres.name; where id = ${id};` });
-                    const d = await r.json(); if(d[0]) { score = d[0].total_rating ? Math.round(d[0].total_rating) : 0; year = d[0].first_release_date ? new Date(d[0].first_release_date * 1000).getFullYear() : "2026"; genre = d[0].genres?.[0]?.name || "Game"; }
+                    const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://api.igdb.com/v4/games')}`, {
+                        method: 'POST',
+                        body: JSON.stringify({
+                            headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` },
+                            method: 'POST',
+                            body: `fields name, total_rating, first_release_date, genres.name; where id = ${id};`
+                        })
+                    });
+                    const wrap = await r.json(); const d = JSON.parse(wrap.contents);
+                    if(d[0]) { score = d[0].total_rating ? Math.round(d[0].total_rating) : 0; year = d[0].first_release_date ? new Date(d[0].first_release_date * 1000).getFullYear() : "2026"; genre = d[0].genres?.[0]?.name || "Game"; }
                 } else {
                     const det = await (await fetch(`https://api.themoviedb.org/3/${cat}/${id}?api_key=${TMDB_KEY}`)).json();
                     score = Math.round(det.vote_average * 10); year = (det.release_date || det.first_air_date || "").split('-')[0]; genre = det.genres?.[0]?.name || cat.toUpperCase();
                     if(cat === 'movie') runtime = det.runtime ? det.runtime + 'm' : '--'; else runtime = (det.number_of_seasons ? 'S'+det.number_of_seasons : 'S1') + ' E' + (det.number_of_episodes || '--');
                 }
                 finalizeAdd(title, year, score, genre, runtime);
-            } catch(e) { logStatus("Fetch Error"); } finally { setSyncing(false); }
+            } catch(e) { alert("Error adding item."); }
         }
 
         function finalizeAdd(title, year, score, genre, runtime) { const newItem = { id: Date.now(), title, category: document.getElementById('category').value, priority: parseInt(document.getElementById('priority').value), status: 'to-do', score, genre, release: year, runtime, notes: '' }; items.push(newItem); document.getElementById('title').value = ''; document.getElementById('live-results').classList.remove('active'); save(); }
-        function moveCategory(index, dir) { if (dir === -1 && index > 0) { [catOrder[index], catOrder[index-1]] = [catOrder[index-1], catOrder[index]]; } if (dir === 1 && index < catOrder.length - 1) { [catOrder[index], catOrder[index+1]] = [catOrder[index+1], catOrder[index]]; } localStorage.setItem('vault_cat_order', JSON.stringify(catOrder)); renderSettings(); render(); }
-        function moveItem(id, dir) { const idx = items.findIndex(x => x.id === id), dest = idx + dir; if (dest >= 0 && dest < items.length) { [items[idx], items[dest]] = [items[dest], items[idx]]; save(); } }
         function downloadBackup() { const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(items, null, 2)); a.download = "vault_backup.json"; a.click(); }
         function importBackup(i) { const r = new FileReader(); r.onload = e => { items = JSON.parse(e.target.result); save(); }; r.readAsText(i.files[0]); }
         async function setupCloud() { const gt = prompt("Token:", cloudConfig.token), gi = prompt("Gist ID:", cloudConfig.gistId); if (gt && gi) { cloudConfig = { token: gt, gistId: gi }; localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig)); await pullFromCloud(); } }
-        function confirmDelete(el, id) { if (el.innerText === 'DEL') { el.innerText = 'SURE?'; el.style.background = '#ef4444'; setTimeout(() => { if(el) { el.innerText = 'DEL'; el.style.background = ''; } }, 3000); } else { items = items.filter(z => z.id !== id); save(); } }
-        function autoExpand(el, id) { el.style.height = 'inherit'; el.style.height = el.scrollHeight + 'px'; const i = items.find(x => x.id === id); if (i) { i.notes = el.value; localStorage.setItem('media_v1', JSON.stringify(items)); } }
-
-        function renderSettings() { const list = document.getElementById('cat-order-list'), labels = { vidya: 'Games', movie: 'Cinema', tv: 'Series' }; list.innerHTML = ''; catOrder.forEach((cat, idx) => { list.innerHTML += `<div class="flex justify-between items-center bg-black/40 p-3 rounded-xl text-white text-[10px] font-black uppercase"><span>${labels[cat]}</span><div class="flex gap-2"><button onclick="moveCategory(${idx}, -1)">▲</button><button onclick="moveCategory(${idx}, 1)">▼</button></div></div>`; }); }
         
         function render() {
-            const container = document.getElementById('tables-container'), s = document.getElementById('sort-order').value, filter = document.getElementById('global-search').value.toLowerCase(), cats = { vidya: '🎮 GAMES', movie: '🎥 CINEMA', tv: '📺 SERIES' }, pMap = { 1: 'IMM', 2: 'HI', 3: 'MED', 4: 'LOW' };
+            const container = document.getElementById('tables-container'), s = localStorage.getItem('vault_sort') || 'priority', filter = document.getElementById('global-search').value.toLowerCase(), cats = { vidya: '🎮 GAMES', movie: '🎥 CINEMA', tv: '📺 SERIES' };
             container.innerHTML = '';
-            catOrder.forEach(key => {
+            ['vidya', 'movie', 'tv'].forEach(key => {
                 let list = items.filter(i => i.category === key && i.title.toLowerCase().includes(filter));
-                if (showArchive) { list = list.filter(i => i.status === 'done'); } 
-                else { list = list.filter(i => i.status !== 'done' && !hiddenPriorities[key].includes(i.priority)); }
-                if (s !== 'manual') list.sort((a,b) => { if(s==='priority') return a.priority - b.priority; if(s==='recent') return b.id - a.id; if(s==='rating') return b.score - a.score; if(s==='release') return parseInt(b.release) - parseInt(a.release); return 0; });
-                
-                let pToggles = showArchive ? '' : '<div class="flex gap-2 ml-4 relative z-30" onclick="event.stopPropagation()">';
-                if (!showArchive) {
-                    [1,2,3,4].forEach(p => {
-                        const isHidden = hiddenPriorities[key].includes(p);
-                        const colors = {1:'bg-red-600', 2:'bg-orange-600', 3:'bg-blue-600', 4:'bg-slate-600'};
-                        pToggles += `<div onclick="togglePriority('${key}', ${p})" class="pri-dot ${colors[p]} ${isHidden ? 'opacity-20 grayscale' : 'opacity-100'}"></div>`;
-                    });
-                    pToggles += '</div>';
-                }
-                if (list.length === 0 && !filter && (showArchive || hiddenPriorities[key].length === 0)) return;
-                let section = `<section><div onclick="collapsed['${key}']=!collapsed['${key}']; save();" class="flex items-center mt-6 mb-2 cursor-pointer select-none"><h2>${cats[key]} ${showArchive ? '(ARCHIVE)' : ''} ${collapsed[key]?'⊕':''}</h2>${pToggles}</div><div style="display:${collapsed[key]?'none':'block'}" class="space-y-2">`;
+                list = showArchive ? list.filter(i => i.status === 'done') : list.filter(i => i.status !== 'done');
+                if (list.length === 0 && !filter) return;
+                let section = `<section><h2 class="mt-6 mb-2 cursor-pointer" onclick="collapsed['${key}']=!collapsed['${key}']; save();">${cats[key]} ${collapsed[key]?'⊕':''}</h2><div style="display:${collapsed[key]?'none':'block'}" class="space-y-2">`;
                 list.forEach(i => {
-                    const bgClass = i.status === 'done' ? 'priority-bg-done' : `priority-bg-${i.priority}`;
-                    section += `<div class="media-card card-${key} ${bgClass} p-3">${s==='manual' && !showArchive ?`<div class="absolute right-0 top-10 flex flex-col gap-1 z-20"><button onclick="moveItem(${i.id},-1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▲</button><button onclick="moveItem(${i.id},1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▼</button></div>`:''}<div class="category-watermark">${key}</div><div class="flex justify-between items-start relative z-10"><div><h3 class="font-black text-white uppercase text-sm leading-tight">${i.title}</h3><div class="text-[9px] text-white/70 font-bold uppercase tracking-wider">${i.genre} • ${i.release}${i.category==='vidya'?'':` • ${i.runtime}`}</div></div><div class="flex items-center gap-3"><button onclick="window.open('https://www.youtube.com/results?search_query=${encodeURIComponent(i.title + ' official trailer')}', '_blank')" class="bg-white/20 w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold border border-white/40">▶</button><span class="font-mono text-lg text-white font-black leading-none">${i.score}</span></div></div><div class="mt-2 flex items-center gap-2 relative z-10"><select onchange="items.find(x=>x.id===${i.id}).priority=parseInt(this.value); save();" class="text-[9px] font-black uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 outline-none">${Object.entries(pMap).map(([v, t]) => `<option value="${v}" ${i.priority==v?'selected':''}>${t}</option>`).join('')}</select><span class="notes-trigger" onclick="document.getElementById('note-${i.id}').classList.toggle('active')">Notes +</span><select onchange="items.find(x=>x.id===${i.id}).status=this.value; save();" class="text-[9px] font-black uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 flex-1 outline-none"><option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option><option value="in-progress" ${i.status==='in-progress'?'selected':''}>In Progress</option><option value="done" ${i.status==='done'?'selected':''}>Done</option></select><button onclick="confirmDelete(this, ${i.id})" class="text-white text-[9px] font-black px-2 py-1 bg-white/10 rounded border border-white/10 transition-all">DEL</button></div><textarea id="note-${i.id}" class="notes-area relative z-10 ${i.notes?'active':''}" placeholder="..." oninput="autoExpand(this, ${i.id})" onblur="save()">${i.notes || ''}</textarea></div>`;
+                    section += `<div class="media-card card-${key} priority-bg-${i.priority} p-3"><h3 class="font-black text-white text-sm">${i.title}</h3><div class="flex gap-2 mt-2"><select onchange="items.find(x=>x.id===${i.id}).status=this.value; save();" class="text-[9px] font-black uppercase bg-black/60 text-white p-1 rounded"><option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option><option value="done">Done</option></select><button onclick="items=items.filter(z=>z.id!==${i.id}); save();" class="text-white text-[9px] font-black bg-white/10 px-2 rounded">DEL</button></div></div>`;
                 });
                 container.innerHTML += section + `</div></section>`;
             });
         }
-        renderSettings(); render(); pullFromCloud();
-        document.addEventListener('click', e => { if (!e.target.closest('.relative')) { const lr = document.getElementById('live-results'); if(lr) lr.classList.remove('active'); } });
+        render(); pullFromCloud();
     </script>
 </body>
 </html>
