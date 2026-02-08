@@ -10,8 +10,8 @@
         body.dark-mode{--bg:#020617;--text:#cbd5e1;--header:#fff;--card-border:rgba(255,255,255,.1);--glass:rgba(0,0,0,.95);--notes-btn:#38bdf8;--subtext:#94a3b8}
         body{background-color:var(--bg)!important;color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;padding:1rem}
         .max-w-3xl{max-width:48rem;margin:0 auto}.flex{display:flex}.grid{display:grid}.grid-cols-3{grid-template-columns:repeat(3,1fr)}
-        .gap-2{gap:.5rem}.mb-6{margin-bottom:1.5rem}.mt-6{margin-top:1.5rem}.mt-2{margin-top:.5rem}
-        .rounded-xl{border-radius:.75rem}.rounded-3xl{border-radius:1.5rem}.rounded-full{border-radius:9999px}.shadow-2xl{box-shadow:0 25px 50px -12px rgba(0,0,0,.25)}
+        .gap-2{gap:.5rem}.mb-6{margin-bottom:1.5rem}.mt-6{margin-top:1.5rem}
+        .rounded-xl{border-radius:.75rem}.rounded-3xl{border-radius:1.5rem}.shadow-2xl{box-shadow:0 25px 50px -12px rgba(0,0,0,.25)}
         .vault-logo{font-size:2.5rem;font-weight:1000;color:var(--header);font-style:italic;letter-spacing:-.07em;text-transform:uppercase;cursor:pointer}
         .adaptive-bg { background-color: var(--bg); transition: background-color 0.3s; border-radius: 12px; padding: 10px; border:1px solid var(--card-border); color: var(--header); font-weight:900; font-size:10px}
         .thin-search{background:0 0;border:none;border-bottom:3px solid var(--header);width:100%;font-size:14px;padding:10px 0;outline:0;color:var(--header);font-weight:950;margin-bottom:1.5rem}
@@ -24,7 +24,7 @@
         .notes-trigger{font-size:10px;font-weight:1000;color:var(--notes-btn);letter-spacing:.05em;cursor:pointer;text-transform:uppercase;text-decoration:underline}
         .notes-area{background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.4);color:#fff;font-size:12px;width:100%;border-radius:6px;outline:0;resize:none;overflow:hidden;height:0;opacity:0;transition:all 0.2s}
         .notes-area.active{height:auto;min-height:45px;padding:10px;margin-top:10px;opacity:1}
-        .card-btn-dark{text-[9px] uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 outline-none; font-size: 9px; font-weight: 800}
+        .card-btn-dark{text-transform:uppercase; background:rgba(0,0,0,0.6); color:white; border:1px solid rgba(255,255,255,0.1); font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 4px; outline: none;}
         #settings-menu{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:2000;display:none;align-items:center;justify-content:center}
         #settings-menu.active{display:flex}
     </style>
@@ -55,6 +55,7 @@
 
     <div id="settings-menu">
         <div style="background:#0f172a;padding:2rem;border-radius:24px;width:90%;max-width:400px;border:1px solid rgba(255,255,255,0.1)">
+            <button onclick="setupCloud()" style="width:100%;padding:1rem;margin-bottom:0.5rem;background:#334155;color:white;border:none;border-radius:12px;font-weight:900">CLOUD SYNC</button>
             <button onclick="downloadBackup()" style="width:100%;padding:1rem;margin-bottom:1rem;background:#334155;color:white;border:none;border-radius:12px;font-weight:900">EXPORT DATA</button>
             <button onclick="document.getElementById('settings-menu').classList.remove('active')" style="width:100%;padding:1rem;background:white;color:black;border:none;border-radius:12px;font-weight:900">CLOSE</button>
         </div>
@@ -65,9 +66,43 @@
         const RAWG_KEY = "40dcecf909e541df8eafbb648d749512";
         
         let items=JSON.parse(localStorage.getItem('media_v1'))||[],searchTimeout,deleteTimers={};
+        let cloudConfig=JSON.parse(localStorage.getItem('vault_cloud'))||{token:'',gistId:''};
 
         function toggleTheme(){document.body.classList.toggle('dark-mode');localStorage.setItem('vault_dark',document.body.classList.contains('dark-mode'))}
         if(localStorage.getItem('vault_dark')==='true')document.body.classList.add('dark-mode');
+
+        async function save(){
+            localStorage.setItem('media_v1',JSON.stringify(items));
+            render();
+            if(cloudConfig.token && cloudConfig.gistId){
+                try {
+                    await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`,{
+                        method:"PATCH",
+                        headers:{"Authorization":`token ${cloudConfig.token}`},
+                        body:JSON.stringify({files:{"vault.json":{content:JSON.stringify(items)}}})
+                    });
+                } catch(e) { console.error("Cloud save failed"); }
+            }
+        }
+
+        async function pullFromCloud(){
+            if(!cloudConfig.token||!cloudConfig.gistId)return;
+            try{
+                const res=await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`,{headers:{"Authorization":`token ${cloudConfig.token}`}});
+                const data=await res.json();
+                if(data.files?.["vault.json"]){items=JSON.parse(data.files["vault.json"].content);render();}
+            }catch(e){console.error("Cloud pull failed");}
+        }
+
+        async function setupCloud(){
+            const gt=prompt("GitHub Token:",cloudConfig.token);
+            const gi=prompt("Gist ID:",cloudConfig.gistId);
+            if(gt !== null && gi !== null){
+                cloudConfig={token:gt,gistId:gi};
+                localStorage.setItem('vault_cloud',JSON.stringify(cloudConfig));
+                await pullFromCloud();
+            }
+        }
 
         function debounceSearch(){clearTimeout(searchTimeout);searchTimeout=setTimeout(performLiveSearch,400)}
 
@@ -112,8 +147,6 @@
             document.getElementById('title').value='';save();
         }
 
-        function save(){localStorage.setItem('media_v1',JSON.stringify(items));render()}
-
         function requestDelete(id, btn) {
             if(btn.innerText === 'DEL') {
                 btn.innerText = 'SURE?'; btn.style.background = '#dc2626';
@@ -153,7 +186,9 @@
             });
         }
         function downloadBackup(){const a=document.createElement('a');a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(items));a.download="vault.json";a.click()}
+        
         render();
+        pullFromCloud();
     </script>
 </body>
 </html>
