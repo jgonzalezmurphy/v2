@@ -24,7 +24,7 @@
         .notes-trigger{font-size:10px;font-weight:1000;color:var(--notes-btn);letter-spacing:.05em;cursor:pointer;text-transform:uppercase;text-decoration:underline}
         .notes-area{background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.4);color:#fff;font-size:12px;width:100%;border-radius:6px;outline:0;resize:none;overflow:hidden;height:0;opacity:0;transition:all 0.2s}
         .notes-area.active{height:auto;min-height:45px;padding:10px;margin-top:10px;opacity:1}
-        .card-btn-dark{text-[9px] uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 outline-none; font-size: 9px; font-weight: 800}
+        .card-btn-dark{text-transform:uppercase; background:rgba(0,0,0,0.6); color:white; border:1px solid rgba(255,255,255,0.1); font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 4px; outline: none;}
         #settings-menu{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:2000;display:none;align-items:center;justify-content:center}
         #settings-menu.active{display:flex}
     </style>
@@ -55,6 +55,7 @@
 
     <div id="settings-menu">
         <div style="background:#0f172a;padding:2rem;border-radius:24px;width:90%;max-width:400px;border:1px solid rgba(255,255,255,0.1)">
+            <button onclick="setupCloud()" style="width:100%;padding:1rem;margin-bottom:0.5rem;background:#334155;color:white;border:none;border-radius:12px;font-weight:900">CLOUD SYNC</button>
             <button onclick="downloadBackup()" style="width:100%;padding:1rem;margin-bottom:1rem;background:#334155;color:white;border:none;border-radius:12px;font-weight:900">EXPORT DATA</button>
             <button onclick="document.getElementById('settings-menu').classList.remove('active')" style="width:100%;padding:1rem;background:white;color:black;border:none;border-radius:12px;font-weight:900">CLOSE</button>
         </div>
@@ -65,6 +66,7 @@
         const RAWG_KEY = "40dcecf909e541df8eafbb648d749512";
         
         let items=JSON.parse(localStorage.getItem('media_v1'))||[],searchTimeout,deleteTimers={};
+        let cloudConfig=JSON.parse(localStorage.getItem('vault_cloud'))||{token:'',gistId:''};
 
         function toggleTheme(){document.body.classList.toggle('dark-mode');localStorage.setItem('vault_dark',document.body.classList.contains('dark-mode'))}
         if(localStorage.getItem('vault_dark')==='true')document.body.classList.add('dark-mode');
@@ -112,7 +114,38 @@
             document.getElementById('title').value='';save();
         }
 
-        function save(){localStorage.setItem('media_v1',JSON.stringify(items));render()}
+        async function save(){
+            localStorage.setItem('media_v1',JSON.stringify(items));
+            render();
+            if(cloudConfig.token && cloudConfig.gistId){
+                try {
+                    await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`,{
+                        method:"PATCH",
+                        headers:{"Authorization":`token ${cloudConfig.token}`},
+                        body:JSON.stringify({files:{"vault.json":{content:JSON.stringify(items)}}})
+                    });
+                } catch(e) { console.error("Cloud save failed"); }
+            }
+        }
+
+        async function pullFromCloud(){
+            if(!cloudConfig.token||!cloudConfig.gistId)return;
+            try{
+                const res=await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`,{headers:{"Authorization":`token ${cloudConfig.token}`}});
+                const data=await res.json();
+                if(data.files?.["vault.json"]){items=JSON.parse(data.files["vault.json"].content);render();}
+            }catch(e){console.error("Cloud pull failed");}
+        }
+
+        async function setupCloud(){
+            const gt=prompt("GitHub Token:",cloudConfig.token);
+            const gi=prompt("Gist ID:",cloudConfig.gistId);
+            if(gt !== null && gi !== null){
+                cloudConfig={token:gt,gistId:gi};
+                localStorage.setItem('vault_cloud',JSON.stringify(cloudConfig));
+                await pullFromCloud();
+            }
+        }
 
         function requestDelete(id, btn) {
             if(btn.innerText === 'DEL') {
@@ -153,7 +186,9 @@
             });
         }
         function downloadBackup(){const a=document.createElement('a');a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(items));a.download="vault.json";a.click()}
+        
         render();
+        pullFromCloud();
     </script>
 </body>
 </html>
