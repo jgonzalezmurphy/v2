@@ -57,11 +57,6 @@
         .notes-area.active{height:auto;min-height:45px;padding:10px;margin-top:10px;opacity:1}
         #settings-menu{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:2000;display:none;align-items:center;justify-content:center;backdrop-filter:blur(10px)}#settings-menu.active{display:flex}
         .pri-dot{width:10px;height:10px;border-radius:50%;border:1px solid rgba(255,255,255,.3);cursor:pointer;transition:all .2s;box-shadow:none!important}.pri-dot:hover{transform:scale(1.2)}
-        .bg-black\/40{background-color:rgba(0,0,0,.4)}.bg-black\/60{background-color:rgba(0,0,0,.6)}.bg-white\/10{background-color:rgba(255,255,255,.1)}.bg-white\/20{background-color:rgba(255,255,255,.2)}
-        .border-white\/5{border-color:rgba(255,255,255,.05)}.border-white\/10{border-color:rgba(255,255,255,.1)}.border-white\/20{border-color:rgba(255,255,255,.2)}.border-white\/40{border-color:rgba(255,255,255,.4)}
-        .text-white\/50{color:rgba(255,255,255,.5)}.text-white\/70{color:rgba(255,255,255,.7)}.placeholder-white\/60::placeholder{color:rgba(255,255,255,.6)}
-        .text-blue-400{color:#60a5fa}.text-red-400{color:#f87171}.text-\[8px\]{font-size:8px}.text-\[9px\]{font-size:9px}.text-\[10px\]{font-size:10px}.max-sm{max-width:24rem}.tracking-wider{letter-spacing:.05em}.flex-shrink-0{flex-shrink:0}
-        
         .adaptive-bg { background-color: var(--bg); transition: background-color 0.3s; border-radius: 12px; }
         #tables-container { content-visibility: auto; contain-intrinsic-size: 1px 1000px; }
     </style>
@@ -93,7 +88,7 @@
                 </div>
                 <div class="grid grid-cols-3 gap-2">
                     <select id="category" class="bg-slate-900 p-3 rounded-xl text-[10px] text-white font-black uppercase outline-none border border-white/10">
-                        <option value="movie">🎥 Movie</option><option value="tv">📺 TV Show</option><option value="vidya" selected>🎮 Game</option>
+                        <option value="vidya" selected>🎮 Game</option><option value="movie">🎥 Movie</option><option value="tv">📺 TV Show</option>
                     </select>
                     <select id="priority" class="bg-slate-900 p-3 rounded-xl text-[10px] text-white font-black uppercase outline-none border border-white/10">
                         <option value="1">Immediate</option><option value="2">High</option><option value="3" selected>Medium</option><option value="4">Low</option>
@@ -115,7 +110,7 @@
         <div class="bg-slate-900 w-11/12 max-sm p-6 rounded-2xl border border-white/10 shadow-2xl">
             <h3 class="text-white font-black uppercase text-xl mb-6 text-center">Settings</h3>
             <div class="grid grid-cols-2 gap-3 mb-6">
-                <button id="archive-toggle-btn" onclick="showArchive=!showArchive;this.innerText=showArchive?'Show Active':'Show Archive';render()" class="bg-amber-600 text-white p-4 rounded-xl text-[10px] font-black uppercase border border-white/5">Show Archive</button>
+                <button onclick="showArchive=!showArchive;this.innerText=showArchive?'Show Active':'Show Archive';render()" class="bg-amber-600 text-white p-4 rounded-xl text-[10px] font-black uppercase border border-white/5">Show Archive</button>
                 <button onclick="toggleTheme()" class="bg-slate-800 text-white p-4 rounded-xl text-[10px] font-black uppercase border border-white/5">Night Mode</button>
                 <button onclick="setupCloud()" class="bg-slate-800 text-white p-4 rounded-xl text-[10px] font-black uppercase border border-white/5">Cloud</button>
                 <button onclick="downloadBackup()" class="bg-slate-800 text-white p-4 rounded-xl text-[10px] font-black uppercase border border-white/5">Export</button>
@@ -127,13 +122,10 @@
     </div>
     <input type="file" id="importFile" class="hidden" onchange="importBackup(this)">
 
-    <div id="random-modal" onclick="this.style.display='none'" class="fixed inset-0 z-3000 backdrop-blur-md flex flex-col items-center justify-center p-6 cursor-pointer" style="display:none;background:rgba(0,0,0,0.95)">
-        <div id="random-content" class="text-center w-full" style="max-width:32rem"></div>
-        <div class="mt-12 text-white/50 text-xs font-mono animate-pulse">TAP ANYWHERE TO CLOSE</div>
-    </div>
-
     <script>
-        const TMDB_KEY="f8baa5b950fb92e47e7250e9faaa2a5c"; // Public read-only key, keeping it.
+        // --- API KEYS ---
+        const TMDB_KEY = "f8baa5b950fb92e47e7250e9faaa2a5c";
+        const RAWG_KEY = "40dcecf909e541df8eafbb648d749512"; // <--- PASTE YOUR KEY FROM RAWG.IO HERE
         
         let items=JSON.parse(localStorage.getItem('media_v1'))||[],collapsed=JSON.parse(localStorage.getItem('vault_collapsed'))||{},cloudConfig=JSON.parse(localStorage.getItem('vault_cloud'))||{token:'',gistId:''},catOrder=JSON.parse(localStorage.getItem('vault_cat_order'))||['vidya','movie','tv'],searchTimeout,hiddenPriorities=JSON.parse(localStorage.getItem('vault_hidden_pri'))||{vidya:[],movie:[],tv:[]},showArchive=false;
         let deleteTimers = {};
@@ -142,7 +134,7 @@
 
         function togglePriority(cat,p){const arr=hiddenPriorities[cat];if(arr.includes(p))hiddenPriorities[cat]=arr.filter(x=>x!==p);else arr.push(p);localStorage.setItem('vault_hidden_pri',JSON.stringify(hiddenPriorities));render()}
 
-        function pickRandom(){const pool=items.filter(i=>!hiddenPriorities[i.category]?.includes(i.priority)&&i.status!=='done'&&!collapsed[i.category]);if(pool.length===0){alert("No visible items!");return}const winner=pool[Math.floor(Math.random()*pool.length)];const modal=document.getElementById('random-modal');const content=document.getElementById('random-content');content.innerHTML=`<div class="text-4xl font-black text-white uppercase">${winner.title}</div><div class="text-xl text-blue-400 font-bold mt-2">${winner.genre}</div>`;modal.style.display='flex'}
+        function pickRandom(){const pool=items.filter(i=>!hiddenPriorities[i.category]?.includes(i.priority)&&i.status!=='done'&&!collapsed[i.category]);if(pool.length===0){alert("No visible items!");return}const winner=pool[Math.floor(Math.random()*pool.length)];alert("RANDOM PICK: " + winner.title.toUpperCase())}
 
         async function save(){localStorage.setItem('media_v1',JSON.stringify(items));localStorage.setItem('vault_collapsed',JSON.stringify(collapsed));render();if(cloudConfig.token&&cloudConfig.gistId){try{await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`,{method:"PATCH",headers:{"Authorization":`token ${cloudConfig.token}`},body:JSON.stringify({files:{"vault.json":{content:JSON.stringify(items)}}})})}catch(e){}}}
         
@@ -157,61 +149,38 @@
             try{
                 let results=[];
                 if(cat==='vidya'){
-                    // FIX: Using Wikipedia API which has open CORS and no Key requirement
-                    const url = `https://en.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrnamespace=0&gsrlimit=8&gsrsearch=${encodeURIComponent(title + " video game")}&prop=pageimages|extracts&pithumbsize=200&exintro&explaintext&exsentences=1`;
-                    const r = await fetch(url);
-                    const d = await r.json();
-                    if(d.query && d.query.pages) {
-                        results = Object.values(d.query.pages).map(p => {
-                            const match = (p.extract || "").match(/\b(19|20)\d{2}\b/);
-                            return {
-                                title: p.title.replace(/ \(.*video game.*\)/i, '').replace(/ \(video game\)/i, ''),
-                                year: match ? match[0] : 'TBA',
-                                id: p.pageid,
-                                img: p.thumbnail ? p.thumbnail.source : '',
-                                type: 'wiki'
-                            };
-                        });
-                    }
+                    const r=await fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(title)}&page_size=8`);
+                    const d=await r.json();
+                    if(d.results)results=d.results.map(g=>({title:g.name,year:(g.released||'').split('-')[0],id:g.id,img:g.background_image||'',score:Math.round(g.metacritic||g.rating*20),genre:g.genres?.[0]?.name||'Game'}))
                 } else {
                     const r=await fetch(`https://api.themoviedb.org/3/search/${cat}?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}`);
                     const d=await r.json();
-                    if(d.results)results=d.results.map(m=>({title:m.title||m.name,year:(m.release_date||m.first_air_date||'TBA').split('-')[0],id:m.id,img:m.poster_path?`https://image.tmdb.org/t/p/w92${m.poster_path}`:'',type:'tmdb'}))
+                    if(d.results)results=d.results.map(m=>({title:m.title||m.name,year:(m.release_date||m.first_air_date||'TBA').split('-')[0],id:m.id,img:m.poster_path?`https://image.tmdb.org/t/p/w92${m.poster_path}`:''}))
                 }
                 
                 dropdown.innerHTML=`<div onclick="finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="live-item text-blue-400 italic text-xs font-black">USE RAW: "${title}"</div>`;
                 results.forEach(res=>{
                     const el=document.createElement('div');
                     el.className='live-item';
-                    el.innerHTML=`<img src="${res.img||'https://placehold.co/40x55/222/FFF?text=GAME'}" class="live-img"><div><div class="font-bold text-sm">${res.title}</div><div class="text-[10px] opacity-50">${res.year}</div></div>`;
+                    el.innerHTML=`<img src="${res.img||''}" class="live-img"><div><div class="font-bold text-sm">${res.title}</div><div class="text-[10px] opacity-50">${res.year}</div></div>`;
                     el.onclick=()=>processSelection(cat,res.id,res.title,res);
                     dropdown.appendChild(el)
                 });
             } catch(e){
-                console.error(e);
-                dropdown.innerHTML=`<div class="p-3 text-xs text-red-400">Network Error (Check Connection)</div><div onclick="finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="live-item text-blue-400 italic text-xs font-black">USE RAW: "${title}"</div>`
+                dropdown.innerHTML=`<div class="p-3 text-xs text-red-400">Network Error. Ensure your RAWG API Key is valid.</div>`
             }
         }
 
-        async function processSelection(cat,id,title,searchResult){
+        async function processSelection(cat,id,title,res){
             document.getElementById('live-results').classList.remove('active');
-            let score=0,year=searchResult.year||'2026',genre='Game',runtime='--';
-            
-            try {
-                if(cat==='vidya'){
-                    // Wikipedia doesn't give clean genres/scores easily via API, so we set defaults
-                    year = searchResult.year;
-                    genre = 'Game'; 
-                } else {
-                    const det=await(await fetch(`https://api.themoviedb.org/3/${cat}/${id}?api_key=${TMDB_KEY}`)).json();
-                    score=Math.round(det.vote_average*10);
-                    year=(det.release_date||det.first_air_date||"").split('-')[0];
-                    genre=det.genres?.[0]?.name||cat.toUpperCase();
-                    if(cat==='movie')runtime=det.runtime?det.runtime+'m':'--';
-                    else runtime=(det.number_of_seasons?'S'+det.number_of_seasons:'S1')+' E'+(det.number_of_episodes||'--')
-                }
-            } catch(e) { console.log("Detail fetch failed, using fallback"); }
-            
+            let score=res.score||0,year=res.year||'2026',genre=res.genre||'Media',runtime='--';
+            if(cat!=='vidya'){
+                const det=await(await fetch(`https://api.themoviedb.org/3/${cat}/${id}?api_key=${TMDB_KEY}`)).json();
+                score=Math.round(det.vote_average*10);
+                year=(det.release_date||det.first_air_date||"").split('-')[0];
+                genre=det.genres?.[0]?.name||cat.toUpperCase();
+                runtime=cat==='movie'?(det.runtime?det.runtime+'m':'--'):(det.number_of_seasons?'S'+det.number_of_seasons:'--');
+            }
             finalizeAdd(title,year,score,genre,runtime)
         }
 
