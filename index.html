@@ -6,12 +6,12 @@
     <title>VAULT</title>
     <style>
         *{margin:0;padding:0;box-sizing:border-box}
-        :root{--bg:#e6faff;--text:#000;--header:#000;--card-border:rgba(0,0,0,.3);--glass:rgba(15,23,42,.98);--notes-btn:#0369a1;--subtext:#475569}
+        :root{--bg:#e6faff;--text:#000;--header:#000;--card-border:rgba(0,0,0,.3);--glass:rgba(15,23,42,.98);--notes-btn:#38bdf8;--subtext:#475569}
         body.dark-mode{--bg:#020617;--text:#cbd5e1;--header:#fff;--card-border:rgba(255,255,255,.1);--glass:rgba(0,0,0,.95);--notes-btn:#38bdf8;--subtext:#94a3b8}
         body{background-color:var(--bg)!important;color:var(--text);font-family:'Inter',sans-serif;min-height:100vh;padding:1rem}
         .max-w-3xl{max-width:48rem;margin:0 auto}.flex{display:flex}.grid{display:grid}.grid-cols-3{grid-template-columns:repeat(3,1fr)}
-        .gap-2{gap:.5rem}.mb-6{margin-bottom:1.5rem}.mt-6{margin-top:1.5rem}.mt-2{margin-top:0.5rem}
-        .rounded-3xl{border-radius:1.5rem}.shadow-2xl{box-shadow:0 25px 50px -12px rgba(0,0,0,.25)}
+        .gap-2{gap:.5rem}.mb-6{margin-bottom:1.5rem}.mt-6{margin-top:1.5rem}.mt-2{margin-top:.5rem}
+        .rounded-xl{border-radius:.75rem}.rounded-3xl{border-radius:1.5rem}.rounded-full{border-radius:9999px}.shadow-2xl{box-shadow:0 25px 50px -12px rgba(0,0,0,.25)}
         .vault-logo{font-size:2.5rem;font-weight:1000;color:var(--header);font-style:italic;letter-spacing:-.07em;text-transform:uppercase;cursor:pointer}
         .adaptive-bg { background-color: var(--bg); transition: background-color 0.3s; border-radius: 12px; padding: 10px; border:1px solid var(--card-border); color: var(--header); font-weight:900; font-size:10px}
         .thin-search{background:0 0;border:none;border-bottom:3px solid var(--header);width:100%;font-size:14px;padding:10px 0;outline:0;color:var(--header);font-weight:950;margin-bottom:1.5rem}
@@ -24,29 +24,17 @@
         .notes-trigger{font-size:10px;font-weight:1000;color:var(--notes-btn);letter-spacing:.05em;cursor:pointer;text-transform:uppercase;text-decoration:underline}
         .notes-area{background:rgba(0,0,0,0.85);border:1px solid rgba(255,255,255,0.4);color:#fff;font-size:12px;width:100%;border-radius:6px;outline:0;resize:none;overflow:hidden;height:0;opacity:0;transition:all 0.2s}
         .notes-area.active{height:auto;min-height:45px;padding:10px;margin-top:10px;opacity:1}
-        .card-btn-dark{text-transform:uppercase; background:rgba(0,0,0,0.6); color:white; border:1px solid rgba(255,255,255,0.1); font-size: 9px; font-weight: 800; padding: 4px 8px; border-radius: 4px; outline: none;}
+        .card-btn-dark{text-[9px] uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 outline-none; font-size: 9px; font-weight: 800}
         #settings-menu{position:fixed;inset:0;background:rgba(0,0,0,0.9);z-index:2000;display:none;align-items:center;justify-content:center}
         #settings-menu.active{display:flex}
-        .filter-pill{padding:4px 8px; border-radius:4px; font-size:10px; font-weight:900; border:1px solid var(--card-border); cursor:pointer; opacity:0.4}
-        .filter-pill.active{opacity:1; background:var(--header); color:var(--bg)}
     </style>
 </head>
 <body>
     <div class="max-w-3xl">
         <header class="flex justify-between items-center mb-6">
             <h1 class="vault-logo" onclick="toggleTheme()">VAULT</h1>
-            <div class="flex gap-2">
-                <button onclick="pickRandom()" class="adaptive-bg">RANDOM</button>
-                <button onclick="document.getElementById('settings-menu').classList.toggle('active')" class="adaptive-bg">SETTINGS</button>
-            </div>
+            <button onclick="document.getElementById('settings-menu').classList.toggle('active')" class="adaptive-bg">SETTINGS</button>
         </header>
-
-        <div class="flex gap-2 mb-4">
-            <div id="f1" class="filter-pill active" onclick="toggleFilter(1)">IMM</div>
-            <div id="f2" class="filter-pill active" onclick="toggleFilter(2)">HI</div>
-            <div id="f3" class="filter-pill active" onclick="toggleFilter(3)">MED</div>
-            <div id="f4" class="filter-pill active" onclick="toggleFilter(4)">LOW</div>
-        </div>
 
         <input id="global-search" type="text" class="thin-search" placeholder="FILTER VAULT..." oninput="render()">
 
@@ -67,8 +55,7 @@
 
     <div id="settings-menu">
         <div style="background:#0f172a;padding:2rem;border-radius:24px;width:90%;max-width:400px;border:1px solid rgba(255,255,255,0.1)">
-            <button onclick="setupCloud()" style="width:100%;padding:1rem;margin-bottom:0.5rem;background:#334155;color:white;border:none;border-radius:12px;font-weight:900">CLOUD SYNC</button>
-            <button onclick="downloadBackup()" style="width:100%;padding:1rem;margin-bottom:0.5rem;background:#334155;color:white;border:none;border-radius:12px;font-weight:900">EXPORT JSON</button>
+            <button onclick="downloadBackup()" style="width:100%;padding:1rem;margin-bottom:1rem;background:#334155;color:white;border:none;border-radius:12px;font-weight:900">EXPORT DATA</button>
             <button onclick="document.getElementById('settings-menu').classList.remove('active')" style="width:100%;padding:1rem;background:white;color:black;border:none;border-radius:12px;font-weight:900">CLOSE</button>
         </div>
     </div>
@@ -78,58 +65,9 @@
         const RAWG_KEY = "40dcecf909e541df8eafbb648d749512";
         
         let items=JSON.parse(localStorage.getItem('media_v1'))||[],searchTimeout,deleteTimers={};
-        let cloudConfig=JSON.parse(localStorage.getItem('vault_cloud'))||{token:'',gistId:''};
-        let activeFilters = [1, 2, 3, 4];
 
         function toggleTheme(){document.body.classList.toggle('dark-mode');localStorage.setItem('vault_dark',document.body.classList.contains('dark-mode'))}
         if(localStorage.getItem('vault_dark')==='true')document.body.classList.add('dark-mode');
-
-        function toggleFilter(p){
-            if(activeFilters.includes(p)) activeFilters = activeFilters.filter(x => x !== p);
-            else activeFilters.push(p);
-            document.getElementById(`f${p}`).classList.toggle('active');
-            render();
-        }
-
-        function pickRandom(){
-            const pool = items.filter(i => i.status === 'to-do' && activeFilters.includes(i.priority));
-            if(pool.length === 0) return alert("No items in current view!");
-            const choice = pool[Math.floor(Math.random()*pool.length)];
-            alert(`VAULT PICKS: ${choice.title.toUpperCase()}`);
-        }
-
-        async function save(){
-            localStorage.setItem('media_v1',JSON.stringify(items));
-            render();
-            if(cloudConfig.token && cloudConfig.gistId){
-                try {
-                    await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`,{
-                        method:"PATCH",
-                        headers:{"Authorization":`token ${cloudConfig.token}`},
-                        body:JSON.stringify({files:{"vault.json":{content:JSON.stringify(items)}}})
-                    });
-                } catch(e) { console.error("Cloud save failed"); }
-            }
-        }
-
-        async function pullFromCloud(){
-            if(!cloudConfig.token||!cloudConfig.gistId)return;
-            try{
-                const res=await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`,{headers:{"Authorization":`token ${cloudConfig.token}`}});
-                const data=await res.json();
-                if(data.files?.["vault.json"]){items=JSON.parse(data.files["vault.json"].content);render();}
-            }catch(e){console.error("Cloud pull failed");}
-        }
-
-        async function setupCloud(){
-            const gt=prompt("GitHub Token:",cloudConfig.token);
-            const gi=prompt("Gist ID:",cloudConfig.gistId);
-            if(gt !== null && gi !== null){
-                cloudConfig={token:gt,gistId:gi};
-                localStorage.setItem('vault_cloud',JSON.stringify(cloudConfig));
-                await pullFromCloud();
-            }
-        }
 
         function debounceSearch(){clearTimeout(searchTimeout);searchTimeout=setTimeout(performLiveSearch,400)}
 
@@ -174,6 +112,8 @@
             document.getElementById('title').value='';save();
         }
 
+        function save(){localStorage.setItem('media_v1',JSON.stringify(items));render()}
+
         function requestDelete(id, btn) {
             if(btn.innerText === 'DEL') {
                 btn.innerText = 'SURE?'; btn.style.background = '#dc2626';
@@ -187,9 +127,9 @@
             const container=document.getElementById('tables-container'),filter=document.getElementById('global-search').value.toLowerCase();
             container.innerHTML='';
             ['vidya','movie','tv'].forEach(cat=>{
-                let list=items.filter(i=>i.category===cat && i.title.toLowerCase().includes(filter) && activeFilters.includes(i.priority));
+                let list=items.filter(i=>i.category===cat && i.title.toLowerCase().includes(filter));
                 if(list.length===0) return;
-                let section=`<h2 class="mt-6" style="text-transform:uppercase; font-weight:900; letter-spacing:1px; margin-bottom:10px">${cat}</h2>`;
+                let section=`<h2 class="mt-6">${cat.toUpperCase()}</h2>`;
                 list.forEach(i=>{
                     const pMap={1:'IMM',2:'HI',3:'MED',4:'LOW'};
                     section+=`<div class="media-card priority-bg-${i.priority}">
@@ -213,9 +153,7 @@
             });
         }
         function downloadBackup(){const a=document.createElement('a');a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(items));a.download="vault.json";a.click()}
-        
         render();
-        pullFromCloud();
     </script>
 </body>
 </html>
