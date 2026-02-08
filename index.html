@@ -14,15 +14,120 @@
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="icon" href="icon.png">
     
-    <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         :root { --bg: #e6faff; --text: #000000; --header: #000000; --card-border: rgba(0,0,0,0.3); --glass: rgba(15, 23, 42, 0.98); --notes-btn: #0369a1; --subtext: #475569; }
         body.dark-mode { --bg: #020617; --text: #cbd5e1; --header: #ffffff; --card-border: rgba(255,255,255,0.1); --glass: rgba(0, 0, 0, 0.95); --notes-btn: #38bdf8; --subtext: #94a3b8; }
-        body { background-color: var(--bg) !important; color: var(--text); font-family: 'Inter', sans-serif; margin: 0; padding: 1rem; min-height: 100vh; transition: background 0.3s; }
+        body { background-color: var(--bg) !important; color: var(--text); font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; min-height: 100vh; transition: background 0.3s; padding: 1rem; }
+        
+        .max-w-3xl { max-width: 48rem; margin: 0 auto; }
+        .pb-32 { padding-bottom: 8rem; }
+        .mb-6 { margin-bottom: 1.5rem; }
+        .mb-10 { margin-bottom: 2.5rem; }
+        .mt-6 { margin-top: 1.5rem; }
+        .mt-2 { margin-top: 0.5rem; }
+        .mt-12 { margin-top: 3rem; }
+        .mb-2 { margin-bottom: 0.5rem; }
+        .ml-4 { margin-left: 1rem; }
+        .flex { display: flex; }
+        .grid { display: grid; }
+        .grid-cols-1 { grid-template-columns: repeat(1, minmax(0, 1fr)); }
+        .grid-cols-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .grid-cols-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+        .gap-1 { gap: 0.25rem; }
+        .gap-2 { gap: 0.5rem; }
+        .gap-3 { gap: 0.75rem; }
+        .gap-4 { gap: 1rem; }
+        .justify-between { justify-content: space-between; }
+        .justify-center { justify-content: center; }
+        .items-center { align-items: center; }
+        .items-start { align-items: flex-start; }
+        .flex-1 { flex: 1 1 0%; }
+        .flex-col { flex-direction: column; }
+        .space-y-2 > * + * { margin-top: 0.5rem; }
+        .space-y-8 > * + * { margin-top: 2rem; }
+        .w-full { width: 100%; }
+        .w-11\/12 { width: 91.666667%; }
+        .w-7 { width: 1.75rem; }
+        .w-8 { width: 2rem; }
+        .w-16 { width: 4rem; }
+        .h-7 { height: 1.75rem; }
+        .h-8 { height: 2rem; }
+        .p-2 { padding: 0.5rem; }
+        .p-3 { padding: 0.75rem; }
+        .p-4 { padding: 1rem; }
+        .p-5 { padding: 1.25rem; }
+        .p-6 { padding: 1.5rem; }
+        .px-2 { padding-left: 0.5rem; padding-right: 0.5rem; }
+        .py-1 { padding-top: 0.25rem; padding-bottom: 0.25rem; }
+        .py-3 { padding-top: 0.75rem; padding-bottom: 0.75rem; }
+        .rounded { border-radius: 0.25rem; }
+        .rounded-xl { border-radius: 0.75rem; }
+        .rounded-2xl { border-radius: 1rem; }
+        .rounded-3xl { border-radius: 1.5rem; }
+        .rounded-full { border-radius: 9999px; }
+        .border { border-width: 1px; }
+        .border-b-4 { border-bottom-width: 4px; }
+        .text-xs { font-size: 0.75rem; line-height: 1rem; }
+        .text-sm { font-size: 0.875rem; line-height: 1.25rem; }
+        .text-lg { font-size: 1.125rem; line-height: 1.75rem; }
+        .text-xl { font-size: 1.25rem; line-height: 1.75rem; }
+        .text-4xl { font-size: 2.25rem; line-height: 2.5rem; }
+        .font-bold { font-weight: 700; }
+        .font-black { font-weight: 900; }
+        .uppercase { text-transform: uppercase; }
+        .italic { font-style: italic; }
+        .leading-none { line-height: 1; }
+        .leading-tight { line-height: 1.25; }
+        .text-center { text-align: center; }
+        .text-white { color: #ffffff; }
+        .bg-black { background-color: #000000; }
+        .bg-slate-900 { background-color: #0f172a; }
+        .bg-slate-800 { background-color: #1e293b; }
+        .bg-blue-600 { background-color: #2563eb; }
+        .bg-blue-900 { background-color: #1e3a8a; }
+        .bg-purple-600 { background-color: #9333ea; }
+        .bg-amber-600 { background-color: #d97706; }
+        .bg-red-600 { background-color: #dc2626; }
+        .bg-orange-600 { background-color: #ea580c; }
+        .border-blue-800 { border-color: #1e40af; }
+        .border-purple-800 { border-color: #6b21a8; }
+        .shadow-lg { box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05); }
+        .shadow-xl { box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
+        .shadow-2xl { box-shadow: 0 25px 50px -12px rgba(0,0,0,0.25); }
+        .cursor-pointer { cursor: pointer; }
+        .select-none { user-select: none; }
+        .outline-none { outline: none; }
+        .hidden { display: none; }
+        .relative { position: relative; }
+        .absolute { position: absolute; }
+        .fixed { position: fixed; }
+        .inset-0 { top: 0; right: 0; bottom: 0; left: 0; }
+        .top-0 { top: 0; }
+        .right-0 { right: 0; }
+        .top-10 { top: 2.5rem; }
+        .z-10 { z-index: 10; }
+        .z-20 { z-index: 20; }
+        .z-30 { z-index: 30; }
+        .z-40 { z-index: 40; }
+        .z-60 { z-index: 60; }
+        .z-1000 { z-index: 1000; }
+        .z-2000 { z-index: 2000; }
+        .z-3000 { z-index: 3000; }
+        .backdrop-blur-md { backdrop-filter: blur(12px); }
+        .animate-pulse { animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+        button:active { transform: scale(0.95); }
+        .grayscale { filter: grayscale(100%); }
+        .opacity-20 { opacity: 0.2; }
+        .opacity-50 { opacity: 0.5; }
+        .opacity-100 { opacity: 1; }
+        .font-mono { font-family: 'Courier New', monospace; }
         
         .vault-logo { font-size: 2.5rem; font-weight: 1000; color: var(--header) !important; font-style: italic; letter-spacing: -0.07em; line-height: 1; text-transform: uppercase; cursor: pointer; user-select: none; }
         .archive-text { color: var(--subtext) !important; font-size: 10px; font-weight: 1000; text-transform: uppercase; letter-spacing: 0.25em; }
         h2 { color: var(--header) !important; font-weight: 950 !important; text-transform: uppercase; letter-spacing: 0.15em; font-size: 1.1rem !important; margin: 0; }
+        h3 { margin: 0; }
         
         .icon-btn { color: var(--header) !important; transition: transform 0.2s; }
         .icon-btn:active { transform: scale(0.9); }
@@ -36,7 +141,9 @@
         .priority-bg-4 { background: #0f172a; }
         .priority-bg-done { background: #1e293b; opacity: 0.8; }
 
-        .card-vidya { border-left: 6px solid #fbbf24; } .card-movie { border-left: 6px solid #ef4444; } .card-tv { border-left: 6px solid #10b981; }
+        .card-vidya { border-left: 6px solid #fbbf24; }
+        .card-movie { border-left: 6px solid #ef4444; }
+        .card-tv { border-left: 6px solid #10b981; }
         .category-watermark { position: absolute; top: -5px; right: 40px; font-size: 1.8rem; font-weight: 950; opacity: 0.15; pointer-events: none; font-style: italic; text-transform: uppercase; z-index: 0; color: white; }
         
         #live-results { position: absolute; top: 100%; left: 0; right: 0; background: #020617; border: 2px solid #3b82f6; border-top: none; border-radius: 0 0 12px 12px; z-index: 1000; max-height: 350px; overflow-y: auto; display: none; box-shadow: 0 20px 40px rgba(0,0,0,0.8); }
@@ -57,10 +164,29 @@
         
         .pri-dot { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.3); cursor: pointer; transition: all 0.2s; box-shadow: none !important; }
         .pri-dot:hover { transform: scale(1.2); }
+        
+        .bg-black\/40 { background-color: rgba(0,0,0,0.4); }
+        .bg-black\/60 { background-color: rgba(0,0,0,0.6); }
+        .bg-white\/10 { background-color: rgba(255,255,255,0.1); }
+        .bg-white\/20 { background-color: rgba(255,255,255,0.2); }
+        .border-white\/5 { border-color: rgba(255,255,255,0.05); }
+        .border-white\/10 { border-color: rgba(255,255,255,0.1); }
+        .border-white\/20 { border-color: rgba(255,255,255,0.2); }
+        .border-white\/40 { border-color: rgba(255,255,255,0.4); }
+        .text-white\/50 { color: rgba(255,255,255,0.5); }
+        .text-white\/70 { color: rgba(255,255,255,0.7); }
+        .placeholder-white\/60::placeholder { color: rgba(255,255,255,0.6); }
+        .text-blue-400 { color: #60a5fa; }
+        .text-red-400 { color: #f87171; }
+        .text-\\[9px\\] { font-size: 9px; }
+        .text-\\[10px\\] { font-size: 10px; }
+        .max-sm { max-width: 24rem; }
+        .tracking-wider { letter-spacing: 0.05em; }
+        .flex-shrink-0 { flex-shrink: 0; }
     </style>
 </head>
 <body id="body-root">
-    <div class="max-w-3xl mx-auto pb-32">
+    <div class="max-w-3xl pb-32">
         <header class="mb-6 flex justify-between items-center">
             <div class="flex items-center gap-3">
                 <div id="sync-icon" onclick="pullFromCloud()" class="icon-btn cursor-pointer">
@@ -80,8 +206,8 @@
 
         <div class="glass p-5 rounded-3xl mb-10 shadow-2xl">
             <div class="grid grid-cols-1 gap-4">
-                <div class="relative z-[60]">
-                    <input id="title" type="text" autocomplete="off" placeholder="Enter Title..." oninput="debounceSearch()" class="bg-black/60 border border-white/20 p-4 rounded-xl text-white w-full outline-none placeholder-white/60 font-bold">
+                <div class="relative z-60">
+                    <input id="title" type="text" autocomplete="off" placeholder="Enter Title..." oninput="debounceSearch()" style="background-color: rgba(0,0,0,0.6); border: 1px solid rgba(255,255,255,0.2); padding: 1rem; border-radius: 0.75rem; color: white; width: 100%; outline: none; font-weight: bold;" class="placeholder-white\/60">
                     <div id="live-results"></div>
                 </div>
                 <div class="grid grid-cols-3 gap-2">
@@ -96,8 +222,8 @@
                     </select>
                 </div>
                 <div class="flex gap-2">
-                    <button onclick="pickRandom()" class="bg-purple-600 text-white p-3 rounded-xl font-black text-sm uppercase shadow-lg active:scale-95 border-b-4 border-purple-800 w-16 flex items-center justify-center">🎲</button>
-                    <button onclick="finalizeAdd(document.getElementById('title').value, '2026', 0, 'Custom', '--')" class="bg-blue-600 text-white py-3 rounded-xl font-black text-xs uppercase shadow-lg active:scale-95 border-b-4 border-blue-800 flex-1">Add</button>
+                    <button onclick="pickRandom()" class="bg-purple-600 text-white p-3 rounded-xl font-black text-sm uppercase shadow-lg border-b-4 border-purple-800 w-16 flex items-center justify-center">🎲</button>
+                    <button onclick="finalizeAdd(document.getElementById('title').value, '2026', 0, 'Custom', '--')" class="bg-blue-600 text-white py-3 rounded-xl font-black text-xs uppercase shadow-lg border-b-4 border-blue-800 flex-1">Add</button>
                 </div>
             </div>
         </div>
@@ -120,16 +246,15 @@
     </div>
     <input type="file" id="importFile" class="hidden" onchange="importBackup(this)">
 
-    <div id="random-modal" onclick="this.style.display='none'" class="fixed inset-0 z-[3000] bg-black/95 backdrop-blur-md flex flex-col items-center justify-center p-6 cursor-pointer" style="display: none;">
-        <div id="random-content" class="text-center w-full max-w-lg"></div>
+    <div id="random-modal" onclick="this.style.display='none'" class="fixed inset-0 z-3000 backdrop-blur-md flex flex-col items-center justify-center p-6 cursor-pointer" style="display: none; background: rgba(0,0,0,0.95);">
+        <div id="random-content" class="text-center w-full" style="max-width: 32rem;"></div>
         <div class="mt-12 text-white/50 text-xs font-mono animate-pulse">TAP ANYWHERE TO CLOSE</div>
     </div>
 
     <script>
         // --- API CONFIGURATION ---
         const TMDB_KEY = "f8baa5b950fb92e47e7250e9faaa2a5c";
-        const CLIENT_ID = "8bjq7bqv85pvclvbdlo4ocgff060tp";
-        const CLIENT_SECRET = "96q58dkxsz3cfe853ckpn9opqy6sli"; // <--- UPDATE THIS
+        const RAWG_KEY = "cf988ef330844141868de9c48203e64d"; // Free RAWG API key for game data
         // -------------------------
 
         let items = JSON.parse(localStorage.getItem('media_v1')) || [], collapsed = JSON.parse(localStorage.getItem('vault_collapsed')) || {}, cloudConfig = JSON.parse(localStorage.getItem('vault_cloud')) || { token: '', gistId: '' }, catOrder = JSON.parse(localStorage.getItem('vault_cat_order')) || ['vidya', 'movie', 'tv'], searchTimeout, hiddenPriorities = JSON.parse(localStorage.getItem('vault_hidden_pri')) || { vidya:[], movie:[], tv:[] }, showArchive = false;
@@ -156,15 +281,6 @@
         async function save() { localStorage.setItem('media_v1', JSON.stringify(items)); localStorage.setItem('vault_collapsed', JSON.stringify(collapsed)); render(); if (cloudConfig.token && cloudConfig.gistId) { try { await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { method: "PATCH", headers: { "Authorization": `token ${cloudConfig.token}` }, body: JSON.stringify({ files: { "vault.json": { content: JSON.stringify(items) } } }) }); } catch(e) {} } }
         async function pullFromCloud() { if (!cloudConfig.token || !cloudConfig.gistId) return; try { const res = await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`, { headers: { "Authorization": `token ${cloudConfig.token}` } }); const data = await res.json(); if (data.files?.["vault.json"]) { items = JSON.parse(data.files["vault.json"].content); render(); } } catch(e) {} }
 
-        async function refreshIGDBToken() { 
-            try { 
-                const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://id.twitch.tv/oauth2/token?client_id='+CLIENT_ID+'&client_secret='+CLIENT_SECRET+'&grant_type=client_credentials')}`);
-                const wrapper = await res.json(); const d = JSON.parse(wrapper.contents);
-                if (d.access_token) { localStorage.setItem('igdb_token', d.access_token); return d.access_token; }
-                return null;
-            } catch(e) { return null; } 
-        }
-
         function debounceSearch() { clearTimeout(searchTimeout); searchTimeout = setTimeout(performLiveSearch, 400); }
 
         async function performLiveSearch() {
@@ -174,58 +290,159 @@
             try {
                 let results = [];
                 if (cat === 'vidya') {
-                    let token = localStorage.getItem('igdb_token') || await refreshIGDBToken();
-                    const igdbUrl = 'https://api.igdb.com/v4/games';
-                    const igdbBody = `fields name, first_release_date, cover.url; search "${title}"; limit 20;`;
-                    const res = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent(igdbUrl)}`, {
-                        method: 'POST', body: JSON.stringify({ headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` }, method: 'POST', body: igdbBody })
-                    });
-                    const wrap = await res.json(); const d = JSON.parse(wrap.contents);
-                    if(d && Array.isArray(d)) { results = d.map(g => ({ title: g.name, year: g.first_release_date ? new Date(g.first_release_date*1000).getFullYear() : 'TBA', id: g.id, img: g.cover ? g.cover.url.replace('t_thumb', 't_cover_small') : '' })); }
+                    // Use RAWG API - no CORS issues, free tier available
+                    const r = await fetch(`https://api.rawg.io/api/games?key=${RAWG_KEY}&search=${encodeURIComponent(title)}&page_size=20`);
+                    const d = await r.json();
+                    if(d.results) {
+                        results = d.results.map(g => ({ 
+                            title: g.name, 
+                            year: g.released ? g.released.split('-')[0] : 'TBA', 
+                            id: g.id, 
+                            img: g.background_image || '',
+                            rating: g.rating || 0,
+                            genres: g.genres || []
+                        }));
+                    }
                 } else {
                     const r = await fetch(`https://api.themoviedb.org/3/search/${cat}?api_key=${TMDB_KEY}&query=${encodeURIComponent(title)}`);
-                    const d = await r.json(); if(d.results) results = d.results.map(m => ({ title: m.title || m.name, year: (m.release_date || m.first_air_date || 'TBA').split('-')[0], id: m.id, img: m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : '' }));
+                    const d = await r.json(); 
+                    if(d.results) results = d.results.map(m => ({ 
+                        title: m.title || m.name, 
+                        year: (m.release_date || m.first_air_date || 'TBA').split('-')[0], 
+                        id: m.id, 
+                        img: m.poster_path ? `https://image.tmdb.org/t/p/w92${m.poster_path}` : '' 
+                    }));
                 }
+                
                 dropdown.innerHTML = `<div onclick="finalizeAdd('${title.replace(/'/g, "\\'")}', '2026', 0, 'Custom', '--')" class="live-item text-blue-400 italic text-xs font-black">USE RAW: "${title}"</div>`;
                 results.forEach(res => {
                     const el = document.createElement('div'); el.className = 'live-item';
                     el.innerHTML = `<img src="${res.img || ''}" class="live-img"><div><div class="font-bold text-sm">${res.title}</div><div class="text-[10px] opacity-50">${res.year}</div></div>`;
-                    el.onclick = () => processSelection(cat, res.id, res.title);
+                    el.onclick = () => processSelection(cat, res.id, res.title, res);
                     dropdown.appendChild(el);
                 });
-            } catch(e) { dropdown.innerHTML = '<div class="p-3 text-xs text-red-400">Search Error</div>'; }
+            } catch(e) { 
+                console.error('Search error:', e);
+                dropdown.innerHTML = `<div class="p-3 text-xs text-red-400">Network Error</div><div onclick="finalizeAdd('${title.replace(/'/g, "\\'")}', '2026', 0, 'Custom', '--')" class="live-item text-blue-400 italic text-xs font-black">USE RAW: "${title}"</div>`; 
+            }
         }
 
-        async function processSelection(cat, id, title) {
+        async function processSelection(cat, id, title, searchResult) {
             document.getElementById('live-results').classList.remove('active');
             try {
                 let score=0, year='2026', genre='Genre', runtime='--';
+                
                 if(cat === 'vidya') {
-                    let token = localStorage.getItem('igdb_token') || await refreshIGDBToken();
-                    const r = await fetch(`https://api.allorigins.win/get?url=${encodeURIComponent('https://api.igdb.com/v4/games')}`, {
-                        method: 'POST', body: JSON.stringify({ headers: { 'Client-ID': CLIENT_ID, 'Authorization': `Bearer ${token}` }, method: 'POST', body: `fields name, total_rating, first_release_date, genres.name; where id = ${id};` })
-                    });
-                    const wrap = await r.json(); const d = JSON.parse(wrap.contents);
-                    if(d[0]) { score = d[0].total_rating ? Math.round(d[0].total_rating) : 0; year = d[0].first_release_date ? new Date(d[0].first_release_date * 1000).getFullYear() : "2026"; genre = d[0].genres?.[0]?.name || "Game"; }
+                    // Fetch full game details from RAWG
+                    const r = await fetch(`https://api.rawg.io/api/games/${id}?key=${RAWG_KEY}`);
+                    const d = await r.json();
+                    
+                    score = d.rating ? Math.round(d.rating * 20) : 0; // Convert 5-star to 100-point
+                    year = d.released ? d.released.split('-')[0] : searchResult.year || '2026';
+                    genre = d.genres?.[0]?.name || 'Game';
+                    runtime = '--'; // Games don't have runtime
                 } else {
                     const det = await (await fetch(`https://api.themoviedb.org/3/${cat}/${id}?api_key=${TMDB_KEY}`)).json();
-                    score = Math.round(det.vote_average * 10); year = (det.release_date || det.first_air_date || "").split('-')[0]; genre = det.genres?.[0]?.name || cat.toUpperCase();
-                    if(cat === 'movie') runtime = det.runtime ? det.runtime + 'm' : '--'; else runtime = (det.number_of_seasons ? 'S'+det.number_of_seasons : 'S1') + ' E' + (det.number_of_episodes || '--');
+                    score = Math.round(det.vote_average * 10); 
+                    year = (det.release_date || det.first_air_date || "").split('-')[0]; 
+                    genre = det.genres?.[0]?.name || cat.toUpperCase();
+                    if(cat === 'movie') runtime = det.runtime ? det.runtime + 'm' : '--'; 
+                    else runtime = (det.number_of_seasons ? 'S'+det.number_of_seasons : 'S1') + ' E' + (det.number_of_episodes || '--');
                 }
                 finalizeAdd(title, year, score, genre, runtime);
-            } catch(e) { alert("Error adding."); }
+            } catch(e) { 
+                console.error('Process selection error:', e);
+                finalizeAdd(title, '2026', 0, cat === 'vidya' ? 'Game' : cat.toUpperCase(), '--');
+            }
         }
 
-        function finalizeAdd(title, year, score, genre, runtime) { const newItem = { id: Date.now(), title, category: document.getElementById('category').value, priority: parseInt(document.getElementById('priority').value), status: 'to-do', score, genre, release: year, runtime, notes: '' }; items.push(newItem); document.getElementById('title').value = ''; document.getElementById('live-results').classList.remove('active'); save(); }
-        function moveCategory(index, dir) { if (dir === -1 && index > 0) { [catOrder[index], catOrder[index-1]] = [catOrder[index-1], catOrder[index]]; } if (dir === 1 && index < catOrder.length - 1) { [catOrder[index], catOrder[index+1]] = [catOrder[index+1], catOrder[index]]; } localStorage.setItem('vault_cat_order', JSON.stringify(catOrder)); renderSettings(); render(); }
-        function moveItem(id, dir) { const idx = items.findIndex(x => x.id === id), dest = idx + dir; if (dest >= 0 && dest < items.length) { [items[idx], items[dest]] = [items[dest], items[idx]]; save(); } }
-        function downloadBackup() { const a = document.createElement('a'); a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(items, null, 2)); a.download = "vault_backup.json"; a.click(); }
-        function importBackup(i) { const r = new FileReader(); r.onload = e => { items = JSON.parse(e.target.result); save(); }; r.readAsText(i.files[0]); }
-        async function setupCloud() { const gt = prompt("Token:", cloudConfig.token), gi = prompt("Gist ID:", cloudConfig.gistId); if (gt && gi) { cloudConfig = { token: gt, gistId: gi }; localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig)); await pullFromCloud(); } }
-        function autoExpand(el, id) { el.style.height = 'inherit'; el.style.height = el.scrollHeight + 'px'; const i = items.find(x => x.id === id); if (i) { i.notes = el.value; localStorage.setItem('media_v1', JSON.stringify(items)); } }
-        function toggleTheme() { document.body.classList.toggle('dark-mode'); localStorage.setItem('vault_dark', document.body.classList.contains('dark-mode')); render(); }
+        function finalizeAdd(title, year, score, genre, runtime) { 
+            const newItem = { 
+                id: Date.now(), 
+                title, 
+                category: document.getElementById('category').value, 
+                priority: parseInt(document.getElementById('priority').value), 
+                status: 'to-do', 
+                score, 
+                genre, 
+                release: year, 
+                runtime, 
+                notes: '' 
+            }; 
+            items.push(newItem); 
+            document.getElementById('title').value = ''; 
+            document.getElementById('live-results').classList.remove('active'); 
+            save(); 
+        }
+        
+        function moveCategory(index, dir) { 
+            if (dir === -1 && index > 0) { 
+                [catOrder[index], catOrder[index-1]] = [catOrder[index-1], catOrder[index]]; 
+            } 
+            if (dir === 1 && index < catOrder.length - 1) { 
+                [catOrder[index], catOrder[index+1]] = [catOrder[index+1], catOrder[index]]; 
+            } 
+            localStorage.setItem('vault_cat_order', JSON.stringify(catOrder)); 
+            renderSettings(); 
+            render(); 
+        }
+        
+        function moveItem(id, dir) { 
+            const idx = items.findIndex(x => x.id === id), dest = idx + dir; 
+            if (dest >= 0 && dest < items.length) { 
+                [items[idx], items[dest]] = [items[dest], items[idx]]; 
+                save(); 
+            } 
+        }
+        
+        function downloadBackup() { 
+            const a = document.createElement('a'); 
+            a.href = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(items, null, 2)); 
+            a.download = "vault_backup.json"; 
+            a.click(); 
+        }
+        
+        function importBackup(i) { 
+            const r = new FileReader(); 
+            r.onload = e => { 
+                items = JSON.parse(e.target.result); 
+                save(); 
+            }; 
+            r.readAsText(i.files[0]); 
+        }
+        
+        async function setupCloud() { 
+            const gt = prompt("Token:", cloudConfig.token), gi = prompt("Gist ID:", cloudConfig.gistId); 
+            if (gt && gi) { 
+                cloudConfig = { token: gt, gistId: gi }; 
+                localStorage.setItem('vault_cloud', JSON.stringify(cloudConfig)); 
+                await pullFromCloud(); 
+            } 
+        }
+        
+        function autoExpand(el, id) { 
+            el.style.height = 'inherit'; 
+            el.style.height = el.scrollHeight + 'px'; 
+            const i = items.find(x => x.id === id); 
+            if (i) { 
+                i.notes = el.value; 
+                localStorage.setItem('media_v1', JSON.stringify(items)); 
+            } 
+        }
+        
+        function toggleTheme() { 
+            document.body.classList.toggle('dark-mode'); 
+            localStorage.setItem('vault_dark', document.body.classList.contains('dark-mode')); 
+            render(); 
+        }
 
-        function renderSettings() { const list = document.getElementById('cat-order-list'), labels = { vidya: 'Games', movie: 'Cinema', tv: 'Series' }; list.innerHTML = ''; catOrder.forEach((cat, idx) => { list.innerHTML += `<div class="flex justify-between items-center bg-black/40 p-3 rounded-xl text-white text-[10px] font-black uppercase"><span>${labels[cat]}</span><div class="flex gap-2"><button onclick="moveCategory(${idx}, -1)">▲</button><button onclick="moveCategory(${idx}, 1)">▼</button></div></div>`; }); }
+        function renderSettings() { 
+            const list = document.getElementById('cat-order-list'), labels = { vidya: 'Games', movie: 'Cinema', tv: 'Series' }; 
+            list.innerHTML = ''; 
+            catOrder.forEach((cat, idx) => { 
+                list.innerHTML += `<div class="flex justify-between items-center bg-black/40 p-3 rounded-xl text-white text-[10px] font-black uppercase"><span>${labels[cat]}</span><div class="flex gap-2"><button onclick="moveCategory(${idx}, -1)">▲</button><button onclick="moveCategory(${idx}, 1)">▼</button></div></div>`; 
+            }); 
+        }
 
         function render() {
             const container = document.getElementById('tables-container'), s = localStorage.getItem('vault_sort') || 'priority', filter = document.getElementById('global-search').value.toLowerCase(), cats = { vidya: '🎮 GAMES', movie: '🎥 CINEMA', tv: '📺 SERIES' }, pMap = { 1: 'IMM', 2: 'HI', 3: 'MED', 4: 'LOW' };
