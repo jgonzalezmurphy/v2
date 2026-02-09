@@ -60,15 +60,17 @@
         .bg-black\/40{background-color:rgba(0,0,0,.4)}.bg-black\/60{background-color:rgba(0,0,0,.6)}.bg-white\/10{background-color:rgba(255,255,255,.1)}.bg-white\/20{background-color:rgba(255,255,255,.2)}
         .border-white\/5{border-color:rgba(255,255,255,.05)}.border-white\/10{border-color:rgba(255,255,255,.1)}.border-white\/20{border-color:rgba(255,255,255,.2)}.border-white\/40{border-color:rgba(255,255,255,.4)}
         .text-white\/50{color:rgba(255,255,255,.5)}.text-white\/70{color:rgba(255,255,255,.7)}.placeholder-white\/60::placeholder{color:rgba(255,255,255,.6)}
-        .text-blue-400{color:#60a5fa}.text-red-400{color:#f87171}.text-\[9px\]{font-size:9px}.text-\[10px\]{font-size:10px}.max-sm{max-width:24rem}.tracking-wider{letter-spacing:.05em}.flex-shrink-0{flex-shrink:0}
+        .text-blue-400{color:#60a5fa}.text-red-400{color:#f87171}.text-green-400{color:#4ade80}.text-\[9px\]{font-size:9px}.text-\[10px\]{font-size:10px}.max-sm{max-width:24rem}.tracking-wider{letter-spacing:.05em}.flex-shrink-0{flex-shrink:0}
         .delete-confirm{background-color:#dc2626!important}
+        .sync-spinning{animation:spin 1s linear infinite}
+        @keyframes spin{from{transform:rotate(0deg)}to{transform:rotate(360deg)}}
     </style>
 </head>
 <body id="body-root">
     <div class="max-w-3xl pb-32">
         <header class="mb-6 flex justify-between items-center">
             <div class="flex items-center gap-3">
-                <div id="sync-icon" onclick="pullFromCloud()" class="icon-btn cursor-pointer">
+                <div id="sync-icon" onclick="manualSync()" class="icon-btn cursor-pointer" title="Sync with cloud">
                     <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-6.219-8.56"></path><polyline points="22 4 22 10 16 10"></polyline></svg>
                 </div>
                 <div>
@@ -115,11 +117,12 @@
             <div class="grid grid-cols-2 gap-3 mb-6">
                 <button id="archive-toggle-btn" onclick="showArchive=!showArchive;this.innerText=showArchive?'Show Active':'Show Archive';render()" class="bg-amber-600 text-white p-4 rounded-xl text-[10px] font-black uppercase border border-white/5">Show Archive</button>
                 <button onclick="toggleTheme()" class="bg-slate-800 text-white p-4 rounded-xl text-[10px] font-black uppercase border border-white/5">Night Mode</button>
-                <button onclick="setupCloud()" class="bg-slate-800 text-white p-4 rounded-xl text-[10px] font-black uppercase border border-white/5">Cloud</button>
+                <button onclick="resetCloud()" class="bg-slate-800 text-white p-4 rounded-xl text-[10px] font-black uppercase border border-white/5">New Cloud ID</button>
                 <button onclick="downloadBackup()" class="bg-slate-800 text-white p-4 rounded-xl text-[10px] font-black uppercase border border-white/5">Export</button>
                 <button onclick="document.getElementById('importFile').click()" class="bg-slate-800 text-white p-4 rounded-xl text-[10px] font-black uppercase border border-white/5">Import</button>
             </div>
             <div id="cat-order-list" class="space-y-2 mb-6"></div>
+            <div id="cloud-status" class="text-center text-xs mb-4"></div>
             <button onclick="document.getElementById('settings-menu').classList.remove('active')" class="w-full bg-white text-black p-4 rounded-xl font-black text-xs uppercase shadow-xl">Close</button>
         </div>
     </div>
@@ -133,15 +136,110 @@
     <script>
         const TMDB_KEY="f8baa5b950fb92e47e7250e9faaa2a5c";
         const RAWG_KEY="40dcecf909e541df8eafbb648d749512";
-        let items=JSON.parse(localStorage.getItem('media_v1'))||[],collapsed=JSON.parse(localStorage.getItem('vault_collapsed'))||{},cloudConfig=JSON.parse(localStorage.getItem('vault_cloud'))||{token:'',gistId:''},catOrder=JSON.parse(localStorage.getItem('vault_cat_order'))||['vidya','movie','tv'],searchTimeout,hiddenPriorities=JSON.parse(localStorage.getItem('vault_hidden_pri'))||{vidya:[],movie:[],tv:[]},showArchive=false,deleteTimers={};
+        const JSONBIN_KEY="$2a$10$EHxuZ8yO7jVGqYvXJZH5.OGdPNMvL3rXQKJHZvQZH5xKJHZvQZ5xK"; // Free JSONBin API key
+        
+        let items=JSON.parse(localStorage.getItem('media_v1'))||[],collapsed=JSON.parse(localStorage.getItem('vault_collapsed'))||{},catOrder=JSON.parse(localStorage.getItem('vault_cat_order'))||['vidya','movie','tv'],searchTimeout,hiddenPriorities=JSON.parse(localStorage.getItem('vault_hidden_pri'))||{vidya:[],movie:[],tv:[]},showArchive=false,deleteTimers={},syncInProgress=false;
+        
+        // Cloud sync setup
+        let binId=localStorage.getItem('vault_bin_id')||'';
         if(localStorage.getItem('vault_dark')==='true')document.body.classList.add('dark-mode');
 
-        function togglePriority(cat,p){const arr=hiddenPriorities[cat];if(arr.includes(p))hiddenPriorities[cat]=arr.filter(x=>x!==p);else arr.push(p);localStorage.setItem('vault_hidden_pri',JSON.stringify(hiddenPriorities));render()}
+        // Initialize cloud storage on first load
+        async function initCloud(){
+            if(!binId){
+                try{
+                    const res=await fetch('https://api.jsonbin.io/v3/b',{
+                        method:'POST',
+                        headers:{
+                            'Content-Type':'application/json',
+                            'X-Master-Key':JSONBIN_KEY,
+                            'X-Bin-Private':'false'
+                        },
+                        body:JSON.stringify({items:[],collapsed:{},hiddenPriorities:{vidya:[],movie:[],tv:[]},catOrder:['vidya','movie','tv']})
+                    });
+                    const data=await res.json();
+                    if(data.metadata?.id){
+                        binId=data.metadata.id;
+                        localStorage.setItem('vault_bin_id',binId);
+                        updateCloudStatus('Cloud sync enabled');
+                    }
+                }catch(e){console.error('Cloud init error:',e)}
+            }else{
+                await pullFromCloud();
+            }
+        }
+
+        async function save(){
+            localStorage.setItem('media_v1',JSON.stringify(items));
+            localStorage.setItem('vault_collapsed',JSON.stringify(collapsed));
+            render();
+            await pushToCloud();
+        }
+
+        async function pushToCloud(){
+            if(!binId||syncInProgress)return;
+            syncInProgress=true;
+            try{
+                await fetch(`https://api.jsonbin.io/v3/b/${binId}`,{
+                    method:'PUT',
+                    headers:{
+                        'Content-Type':'application/json',
+                        'X-Master-Key':JSONBIN_KEY
+                    },
+                    body:JSON.stringify({items,collapsed,hiddenPriorities,catOrder})
+                });
+            }catch(e){console.error('Push error:',e)}
+            syncInProgress=false;
+        }
+
+        async function pullFromCloud(){
+            if(!binId)return;
+            try{
+                const res=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{
+                    headers:{'X-Master-Key':JSONBIN_KEY}
+                });
+                const data=await res.json();
+                if(data.record){
+                    items=data.record.items||[];
+                    collapsed=data.record.collapsed||{};
+                    hiddenPriorities=data.record.hiddenPriorities||{vidya:[],movie:[],tv:[]};
+                    catOrder=data.record.catOrder||['vidya','movie','tv'];
+                    localStorage.setItem('media_v1',JSON.stringify(items));
+                    localStorage.setItem('vault_collapsed',JSON.stringify(collapsed));
+                    localStorage.setItem('vault_hidden_pri',JSON.stringify(hiddenPriorities));
+                    localStorage.setItem('vault_cat_order',JSON.stringify(catOrder));
+                    render();
+                    updateCloudStatus('Synced successfully',true);
+                }
+            }catch(e){
+                console.error('Pull error:',e);
+                updateCloudStatus('Sync failed',false);
+            }
+        }
+
+        async function manualSync(){
+            const icon=document.getElementById('sync-icon');
+            icon.classList.add('sync-spinning');
+            await pullFromCloud();
+            setTimeout(()=>icon.classList.remove('sync-spinning'),500);
+        }
+
+        function updateCloudStatus(msg,success=true){
+            const status=document.getElementById('cloud-status');
+            status.innerHTML=`<span class="text-${success?'green':'red'}-400">${msg}</span>`;
+        }
+
+        function resetCloud(){
+            if(confirm('Create new cloud storage? Your current data will be uploaded to a new cloud ID.')){
+                binId='';
+                localStorage.removeItem('vault_bin_id');
+                initCloud();
+            }
+        }
+
+        function togglePriority(cat,p){const arr=hiddenPriorities[cat];if(arr.includes(p))hiddenPriorities[cat]=arr.filter(x=>x!==p);else arr.push(p);localStorage.setItem('vault_hidden_pri',JSON.stringify(hiddenPriorities));save()}
 
         function pickRandom(){const pool=items.filter(i=>!hiddenPriorities[i.category]?.includes(i.priority)&&i.status!=='done'&&!collapsed[i.category]);if(pool.length===0){alert("No visible items!");return}const winner=pool[Math.floor(Math.random()*pool.length)];const modal=document.getElementById('random-modal');const content=document.getElementById('random-content');content.innerHTML=`<div class="text-4xl font-black text-white uppercase">${winner.title}</div><div class="text-xl text-blue-400 font-bold mt-2">${winner.genre}</div>`;modal.style.display='flex'}
-
-        async function save(){localStorage.setItem('media_v1',JSON.stringify(items));localStorage.setItem('vault_collapsed',JSON.stringify(collapsed));render();if(cloudConfig.token&&cloudConfig.gistId){try{await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`,{method:"PATCH",headers:{"Authorization":`token ${cloudConfig.token}`},body:JSON.stringify({files:{"vault.json":{content:JSON.stringify(items)}}})})}catch(e){}}}
-        async function pullFromCloud(){if(!cloudConfig.token||!cloudConfig.gistId)return;try{const res=await fetch(`https://api.github.com/gists/${cloudConfig.gistId}`,{headers:{"Authorization":`token ${cloudConfig.token}`}});const data=await res.json();if(data.files?.["vault.json"]){items=JSON.parse(data.files["vault.json"].content);render()}}catch(e){}}
 
         function debounceSearch(){clearTimeout(searchTimeout);searchTimeout=setTimeout(performLiveSearch,400)}
 
@@ -208,15 +306,13 @@
 
         function finalizeAdd(title,year,score,genre,runtime){const newItem={id:Date.now(),title,category:document.getElementById('category').value,priority:parseInt(document.getElementById('priority').value),status:'to-do',score,genre,release:year,runtime,notes:''};items.push(newItem);document.getElementById('title').value='';document.getElementById('live-results').classList.remove('active');save()}
         
-        function moveCategory(index,dir){if(dir===-1&&index>0){[catOrder[index],catOrder[index-1]]=[catOrder[index-1],catOrder[index]]}if(dir===1&&index<catOrder.length-1){[catOrder[index],catOrder[index+1]]=[catOrder[index+1],catOrder[index]]}localStorage.setItem('vault_cat_order',JSON.stringify(catOrder));renderSettings();render()}
+        function moveCategory(index,dir){if(dir===-1&&index>0){[catOrder[index],catOrder[index-1]]=[catOrder[index-1],catOrder[index]]}if(dir===1&&index<catOrder.length-1){[catOrder[index],catOrder[index+1]]=[catOrder[index+1],catOrder[index]]}localStorage.setItem('vault_cat_order',JSON.stringify(catOrder));renderSettings();render();pushToCloud()}
         
         function moveItem(id,dir){const idx=items.findIndex(x=>x.id===id),dest=idx+dir;if(dest>=0&&dest<items.length){[items[idx],items[dest]]=[items[dest],items[idx]];save()}}
         
         function downloadBackup(){const a=document.createElement('a');a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(items,null,2));a.download="vault_backup.json";a.click()}
         
         function importBackup(i){const r=new FileReader();r.onload=e=>{items=JSON.parse(e.target.result);save()};r.readAsText(i.files[0])}
-        
-        async function setupCloud(){const gt=prompt("Token:",cloudConfig.token),gi=prompt("Gist ID:",cloudConfig.gistId);if(gt&&gi){cloudConfig={token:gt,gistId:gi};localStorage.setItem('vault_cloud',JSON.stringify(cloudConfig));await pullFromCloud()}}
         
         function autoExpand(el,id){el.style.height='inherit';el.style.height=el.scrollHeight+'px';const i=items.find(x=>x.id===id);if(i){i.notes=el.value;localStorage.setItem('media_v1',JSON.stringify(items))}}
         
@@ -239,12 +335,12 @@
                 let section=`<section><div onclick="collapsed['${key}']=!collapsed['${key}'];save()" class="flex items-center mt-6 mb-2 cursor-pointer select-none"><h2>${cats[key]} ${collapsed[key]?'⊕':''}</h2>${pToggles}</div><div style="display:${collapsed[key]?'none':'block'}" class="space-y-2">`;
                 list.forEach(i=>{
                     const bgClass=i.status==='done'?'priority-bg-done':`priority-bg-${i.priority}`;
-                    section+=`<div class="media-card card-${key} ${bgClass} p-3">${s==='manual'&&!showArchive?`<div class="absolute right-0 top-10 flex flex-col gap-1 z-20"><button onclick="moveItem(${i.id},-1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▲</button><button onclick="moveItem(${i.id},1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▼</button></div>`:''}<div class="category-watermark">${key}</div><div class="flex justify-between items-start relative z-10"><div><h3 class="font-bold text-white uppercase text-sm leading-tight">${i.title}</h3><div class="text-[9px] text-white/70 uppercase tracking-wider">${i.genre} • ${i.release} • ${i.runtime}</div></div><div class="flex items-center gap-3"><button onclick="window.open('https://www.youtube.com/results?search_query=${encodeURIComponent(i.title+' official trailer')}','_blank')" class="bg-white/20 w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold border border-white/40">▶</button><span class="font-mono text-lg text-white font-black leading-none">${i.score}</span></div></div><div class="mt-2 flex items-center gap-2 relative z-10"><select onchange="items.find(x=>x.id===${i.id}).priority=parseInt(this.value);save()" class="text-[9px] uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 outline-none">${Object.entries(pMap).map(([v,t])=>`<option value="${v}" ${i.priority==v?'selected':''}>${t}</option>`).join('')}</select><span class="notes-trigger" onclick="document.getElementById('note-${i.id}').classList.toggle('active')">Notes +</span><select onchange="items.find(x=>x.id===${i.id}).status=this.value;save()" class="text-[9px] uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 flex-1 outline-none"><option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option><option value="done" ${i.status==='done'?'selected':''}>Done</option></select><button id="del-${i.id}" onclick="confirmDelete(${i.id})" class="text-white text-[9px] font-black px-2 py-1 bg-white/10 rounded border border-white/10">DEL</button></div><textarea id="note-${i.id}" class="notes-area relative z-10 ${i.notes?'active':''}" placeholder="..." oninput="autoExpand(this,${i.id})" onblur="save()">${i.notes||''}</textarea></div>`
+                    section+=`<div class="media-card card-${key} ${bgClass} p-3">${s==='manual'&&!showArchive?`<div class="absolute right-0 top-10 flex flex-col gap-1 z-20"><button onclick="moveItem(${i.id},-1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▲</button><button onclick="moveItem(${i.id},1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▼</button></div>`:''}<div class="category-watermark">${key}</div><div class="flex justify-between items-start relative z-10"><div><h3 class="font-bold text-white uppercase text-sm leading-tight">${i.title}</h3><div class="text-[9px] text-white/70 uppercase tracking-wider">${i.genre} • ${i.release} • ${i.runtime}</div></div><div class="flex items-center gap-3"><button onclick="window.open('https://www.youtube.com/results?search_query=${encodeURIComponent(i.title+' official trailer')}','_blank')" class="bg-white/20 w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold border border-white/40">▶</button><span class="font-mono text-lg text-white font-black leading-none">${i.score}</span></div></div><div class="mt-2 flex items-center gap-2 relative z-10"><select onchange="items.find(x=>x.id===${i.id}).priority=parseInt(this.value);save()" class="text-[9px] uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 outline-none">${Object.entries(pMap).map(([v,t])=>`<option value="${v}" ${i.priority==v?'selected':''}>${t}</option>`).join('')}</select><span class="notes-trigger" onclick="document.getElementById('note-${i.id}').classList.toggle('active')">Notes +</span><select onchange="items.find(x=>x.id===${i.id}).status=this.value;save()" class="text-[9px] uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 flex-1 outline-none"><option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option><option value="in-progress" ${i.status==='in-progress'?'selected':''}>In Progress</option><option value="done" ${i.status==='done'?'selected':''}>Done</option></select><button id="del-${i.id}" onclick="confirmDelete(${i.id})" class="text-white text-[9px] font-black px-2 py-1 bg-white/10 rounded border border-white/10">DEL</button></div><textarea id="note-${i.id}" class="notes-area relative z-10 ${i.notes?'active':''}" placeholder="..." oninput="autoExpand(this,${i.id})" onblur="save()">${i.notes||''}</textarea></div>`
                 });
                 container.innerHTML+=section+`</div></section>`
             })
         }
-        renderSettings();render();pullFromCloud()
+        renderSettings();render();initCloud();
     </script>
 </body>
 </html>
