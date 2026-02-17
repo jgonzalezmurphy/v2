@@ -160,4 +160,302 @@
                     </label>
                 </div>
                 <div class="flex gap-2">
-                    
+                    <button onclick="pickRandom()" class="bg-purple-600 text-white p-3 rounded-xl font-black text-sm uppercase shadow-lg border-b-4 border-purple-800 w-16 flex items-center justify-center">🎲</button>
+                    <button onclick="finalizeAdd(document.getElementById('title').value,'2026',0,'Custom','--')" class="bg-blue-600 text-white py-3 rounded-xl font-black text-xs uppercase shadow-lg border-b-4 border-blue-800 flex-1">Add</button>
+                </div>
+            </div>
+        </div>
+        <div id="tables-container" class="space-y-8 max-w-4xl mx-auto"></div>
+    </div>
+
+    <div id="settings-menu">
+        <div class="bg-slate-900 w-11/12 max-sm p-6 rounded-2xl border border-white/10 shadow-2xl">
+            <h3 class="text-white font-black uppercase text-xl mb-6 text-center">Settings</h3>
+            
+            <div class="mb-4">
+                <h4 class="text-white/70 font-black text-xs uppercase mb-2">🎨 Appearance</h4>
+                <div class="grid grid-cols-2 gap-2 mb-3">
+                    <button onclick="document.getElementById('theme-picker').classList.toggle('hidden')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5">Theme</button>
+                    <button onclick="toggleSetting('coverArt')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5" id="toggle-coverArt">Cover Art: ON</button>
+                    <button onclick="toggleSetting('compact')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5" id="toggle-compact">Compact: OFF</button>
+                    <button onclick="toggleSetting('animations')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5" id="toggle-animations">Animations: ON</button>
+                    <button onclick="toggleSetting('confetti')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5" id="toggle-confetti">Confetti: ON</button>
+                </div>
+                <div id="theme-picker" class="hidden mb-3 grid grid-cols-2 gap-2">
+                    <button onclick="setTheme('default-light')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#e6faff;color:#000;border-color:#0369a1">☀️ Light (Default)</button>
+                    <button onclick="setTheme('default-dark')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#020617;color:#fff;border-color:#3b82f6">🌙 Dark (Default)</button>
+                    <button onclick="setTheme('forest')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#064e3b;color:#fff;border-color:#10b981">🌲 Forest</button>
+                    <button onclick="setTheme('sunset')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#7c2d12;color:#fff;border-color:#f97316">🌅 Sunset</button>
+                    <button onclick="setTheme('purple')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#581c87;color:#fff;border-color:#a855f7">💜 Purple</button>
+                    <button onclick="setTheme('midnight')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#0f172a;color:#fff;border-color:#64748b">🌃 Midnight</button>
+                    <button onclick="setTheme('rose')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#4c0519;color:#fff;border-color:#fb7185">🌹 Rose</button>
+                    <button onclick="setTheme('ocean')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#164e63;color:#fff;border-color:#06b6d4">🌊 Ocean</button>
+                    <button onclick="setTheme('cyberpunk')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#1a0033;color:#f0abfc;border-color:#d946ef">⚡ Cyberpunk</button>
+                    <button onclick="setTheme('nature')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#1c4532;color:#bbf7d0;border-color:#22c55e">🍃 Nature</button>
+                    <button onclick="setTheme('monochrome')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#18181b;color:#e4e4e7;border-color:#a1a1aa">⚫ Monochrome</button>
+                    <button onclick="setTheme('retro')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#fef3c7;color:#78350f;border-color:#d97706">🕹️ Retro</button>
+                    <button onclick="setTheme('matrix')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#000;color:#00ff00;border-color:#00ff00">🟩 Matrix</button>
+                    <button onclick="setTheme('arcade')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#1a0033;color:#ff00ff;border-color:#ff00ff">🕹️ Arcade</button>
+                    <button onclick="setTheme('noir')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#0a0a0a;color:#e5e5e5;border-color:#999">🎬 Film Noir</button>
+                    <button onclick="setTheme('synthwave')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#0a0520;color:#ff71ce;border-color:#01cdfe">🌆 Synthwave</button>
+                    <button onclick="setTheme('horror')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#0d0208;color:#ff0a00;border-color:#ff0a00">🔪 Horror</button>
+                    <button onclick="setTheme('scifi')" class="p-3 rounded-xl text-[9px] font-black uppercase border-2" style="background:#001f3f;color:#00d9ff;border-color:#00d9ff">🚀 Sci-Fi</button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-white/70 font-black text-xs uppercase mb-2">🏷️ Features</h4>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="toggleSetting('tags')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5" id="toggle-tags">Tags: ON</button>
+                    <button onclick="toggleSetting('notes')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5" id="toggle-notes">Notes: ON</button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-white/70 font-black text-xs uppercase mb-2">📱 Mobile</h4>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="toggleSetting('swipe')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5" id="toggle-swipe">Swipe: ON</button>
+                    <button onclick="toggleSetting('haptic')" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5" id="toggle-haptic">Haptic: ON</button>
+                </div>
+            </div>
+
+            <div class="mb-4">
+                <h4 class="text-white/70 font-black text-xs uppercase mb-2">💾 Data</h4>
+                <div class="grid grid-cols-2 gap-2">
+                    <button onclick="showStats()" class="bg-purple-600 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5">Stats</button>
+                    <button onclick="exportCSV()" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5">Export CSV</button>
+                    <button onclick="resetCloud()" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5">New Cloud ID</button>
+                    <button onclick="downloadBackup()" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5">Export JSON</button>
+                    <button onclick="document.getElementById('importFile').click()" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5">Import</button>
+                    <button onclick="shareVault()" class="bg-slate-800 text-white p-3 rounded-xl text-[10px] font-black uppercase border border-white/5">Share</button>
+                </div>
+            </div>
+
+            <div id="backup-reminder"></div>
+            <div id="cat-order-list" class="space-y-2 mb-6"></div>
+            <div id="cloud-status" class="text-center text-xs mb-4"></div>
+            <button onclick="document.getElementById('settings-menu').style.display='none'" class="w-full bg-white text-black p-4 rounded-xl font-black text-xs uppercase shadow-xl">Close</button>
+        </div>
+    </div>
+
+    <div id="random-modal">
+        <div class="bg-slate-900 p-12 rounded-2xl border border-white/20 shadow-2xl text-center max-w-md">
+            <div id="random-content" class="mb-8"></div>
+            <button onclick="document.getElementById('random-modal').style.display='none'" class="bg-white text-black px-8 py-3 rounded-xl font-black uppercase">Close</button>
+        </div>
+    </div>
+
+    <div id="stats-modal">
+        <div class="bg-slate-900 w-11/12 max-sm p-6 rounded-2xl border border-white/10 shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-white font-black uppercase text-xl">Stats</h3>
+                <button onclick="document.getElementById('stats-modal').style.display='none'" class="text-white/50 hover:text-white text-2xl">&times;</button>
+            </div>
+            <div id="stats-content"></div>
+        </div>
+    </div>
+
+    <div id="custom-modal">
+        <div class="modal-content">
+            <div class="modal-title" id="modal-title"></div>
+            <div class="modal-message" id="modal-message"></div>
+            <input type="text" class="modal-input" id="modal-input" style="display:none">
+            <div class="modal-buttons" id="modal-buttons"></div>
+        </div>
+    </div>
+
+    <div id="undo-banner">
+        <span id="undo-text">Item deleted</span>
+        <button onclick="undoDelete()" class="ml-4 bg-blue-500 text-white px-4 py-1 rounded font-black text-xs uppercase">UNDO</button>
+    </div>
+
+    <canvas id="confetti-canvas"></canvas>
+    <input type="file" id="importFile" class="hidden" onchange="importBackup(this)">
+
+    <script>
+        try {
+        const T="f8baa5b950fb92e47e7250e9faaa2a5c",R="40dcecf909e541df8eafbb648d749512",J="$2a$10$EHxuZ8yO7jVGqYvXJZH5.OGdPNMvL3rXQKJHZvQZH5xKJHZvQZ5xK",I="8bjq7bqv85pvclvbdlo4ocgff060tp",S="96q58dkxsz3cfe853ckpn9opqy6sli";
+        let items=JSON.parse(localStorage.media_v1||'[]'),collapsed=JSON.parse(localStorage.vault_collapsed||'{}'),catOrder=JSON.parse(localStorage.vault_cat_order||'["vidya","movie","tv"]'),searchTimeout,hiddenPriorities=JSON.parse(localStorage.vault_hidden_pri||'{"vidya":[],"movie":[],"tv":[]}'),showArchive=!1,deleteTimers={},syncInProgress=!1,binId=localStorage.vault_bin_id||'',igdbToken=localStorage.igdb_token||'',statusFilter=['to-do','in-progress'],undoStack=null,settings=JSON.parse(localStorage.vault_settings||'{"coverArt":true,"compact":false,"notes":true,"tags":true,"animations":true,"confetti":true,"swipe":true,"haptic":true}'),coverCache={},syncQueue=[],touchStartX=0,touchStartY=0,touchElement=null,modalResolve=null;
+        const savedTheme=localStorage.vault_theme||'default-light';if(savedTheme!=='default-light')document.body.classList.add(savedTheme);
+
+        function customConfirm(message){return new Promise(resolve=>{modalResolve=resolve;document.getElementById('modal-title').textContent='Confirm';document.getElementById('modal-message').textContent=message;document.getElementById('modal-input').style.display='none';const btns=document.getElementById('modal-buttons');btns.innerHTML='<button class="btn-danger" onclick="resolveModal(true)">Delete</button><button class="btn-secondary" onclick="resolveModal(false)">Cancel</button>';document.getElementById('custom-modal').style.display='flex'})}
+
+        function customPrompt(message){return new Promise(resolve=>{modalResolve=resolve;document.getElementById('modal-title').textContent='Input';document.getElementById('modal-message').textContent=message;const inp=document.getElementById('modal-input');inp.style.display='block';inp.value='';const btns=document.getElementById('modal-buttons');btns.innerHTML='<button class="btn-primary" onclick="resolveModal(document.getElementById(\'modal-input\').value)">OK</button><button class="btn-secondary" onclick="resolveModal(null)">Cancel</button>';document.getElementById('custom-modal').style.display='flex';setTimeout(()=>inp.focus(),100)})}
+
+        function resolveModal(value){if(modalResolve){modalResolve(value);modalResolve=null}document.getElementById('custom-modal').style.display='none'}
+
+        function toggleSetting(key){settings[key]=!settings[key];localStorage.vault_settings=JSON.stringify(settings);document.getElementById(`toggle-${key}`).textContent=`${key.replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase())}: ${settings[key]?'ON':'OFF'}`;if(key==='animations')document.querySelectorAll('.media-card').forEach(c=>c.style.animation=settings.animations?'fadeIn 0.3s ease':'none');if(key==='swipe'&&settings.swipe){swipeListenersAttached=false;initSwipe()}render()}
+
+        function checkBackupReminder(){if(!localStorage.vault_last_backup)return;const lastBackup=parseInt(localStorage.vault_last_backup),daysSince=Math.floor((Date.now()-lastBackup)/864e5);if(daysSince>=28&&items.length>0){const status=document.getElementById('backup-reminder');if(status)status.innerHTML=`<div class="text-amber-400 text-xs mb-4 p-3 bg-amber-900/20 rounded-xl border border-amber-600/30">⚠️ Last backup: ${daysSince} days ago. <button onclick="downloadBackup()" class="underline font-black">Backup now</button></div>`}}
+
+        function downloadBackup(){const a=document.createElement('a');a.href="data:text/json;charset=utf-8,"+encodeURIComponent(JSON.stringify(items,null,2));a.download="vault_backup_"+new Date().toISOString().split('T')[0]+".json";a.click();localStorage.vault_last_backup=Date.now()}
+
+        function exportCSV(){const headers=['Title','Category','Priority','Status','Score','Genre','Year','Runtime','Tags','Notes','Date Added'];const rows=items.map(i=>[i.title,i.category,i.priority,i.status,i.score,i.genre,i.release,i.runtime,(i.tags||[]).join(';'),i.notes||'',i.dateAdded||'']);const csv=[headers,...rows].map(r=>r.map(c=>'"'+String(c).replace(/"/g,'""')+'"').join(',')).join('\n');const a=document.createElement('a');a.href='data:text/csv;charset=utf-8,'+encodeURIComponent(csv);a.download='vault_export_'+new Date().toISOString().split('T')[0]+'.csv';a.click()}
+
+        function shareVault(){const text=`My VAULT: ${items.length} items (${items.filter(i=>i.status==='done').length} completed)`;if(navigator.share){navigator.share({title:'VAULT',text,url:window.location.href}).catch(()=>{})}else{navigator.clipboard?.writeText(text);showToast('Stats copied to clipboard!')}}
+
+        async function getIGDBToken(){if(igdbToken&&Date.now()-parseInt(localStorage.igdb_token_time||0)<432e5)return igdbToken;try{const r=await fetch('https://id.twitch.tv/oauth2/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:`client_id=${I}&client_secret=${S}&grant_type=client_credentials`}),d=await r.json();if(d.access_token){igdbToken=d.access_token;localStorage.igdb_token=igdbToken;localStorage.igdb_token_time=Date.now();return igdbToken}}catch(e){}return null}
+
+        async function fetchGameRuntime(title){let runtime='--';try{const token=await getIGDBToken();if(token){const r=await fetch('https://corsproxy.io/?'+encodeURIComponent('https://api.igdb.com/v4/games'),{method:'POST',headers:{'Client-ID':I,'Authorization':`Bearer ${token}`,'Content-Type':'text/plain'},body:`fields name,time_to_beat;search "${title.replace(/"/g,'\\"')}";limit 1;`}),d=await r.json();if(d[0]?.time_to_beat?.completely)return Math.round(d[0].time_to_beat.completely/3600)+'h'}}catch(e){}try{const r=await fetch(`https://howlongtobeat.com/api/search`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({searchType:'games',searchTerms:[title.split(' ')],searchOptions:{games:{sortCategory:'popular',rangeCategory:'main',platform:'',include:'',exclude:''}}})}),d=await r.json();if(d.data?.[0]?.comp_100)return Math.round(d.data[0].comp_100/3600)+'h'}catch(e){}return'--'}
+
+        async function fetchCoverArt(id,cat){if(!settings.coverArt)return null;const cacheKey=`${cat}-${id}`;if(coverCache[cacheKey])return coverCache[cacheKey];try{if(cat==='vidya'){const r=await fetch(`https://api.rawg.io/api/games/${id}?key=${R}`),d=await r.json();coverCache[cacheKey]=d.background_image;return d.background_image}else{const r=await fetch(`https://api.themoviedb.org/3/${cat}/${id}?api_key=${T}`),d=await r.json();const url=d.poster_path?`https://image.tmdb.org/t/p/w200${d.poster_path}`:null;coverCache[cacheKey]=url;return url}}catch(e){return null}}
+
+        async function initCloud(){if(!binId){try{const r=await fetch('https://api.jsonbin.io/v3/b',{method:'POST',headers:{'Content-Type':'application/json','X-Master-Key':J,'X-Bin-Private':'false'},body:JSON.stringify({items:[],collapsed:{},hiddenPriorities:{vidya:[],movie:[],tv:[]},catOrder:['vidya','movie','tv']})}),d=await r.json();d.metadata?.id&&(binId=d.metadata.id,localStorage.vault_bin_id=binId,updateCloudStatus('Cloud sync enabled'))}catch(e){}}else await pullFromCloud()}
+
+        let saveTimer;
+        function save(){localStorage.media_v1=JSON.stringify(items);localStorage.vault_collapsed=JSON.stringify(collapsed);render();clearTimeout(saveTimer);saveTimer=setTimeout(pushToCloud,2000)}
+
+        async function pushToCloud(){if(!binId||syncInProgress)return;syncInProgress=!0;try{await fetch(`https://api.jsonbin.io/v3/b/${binId}`,{method:'PUT',headers:{'Content-Type':'application/json','X-Master-Key':J},body:JSON.stringify({items,collapsed,hiddenPriorities,catOrder})})}catch(e){}syncInProgress=!1}
+
+        async function pullFromCloud(){if(!binId)return;try{const r=await fetch(`https://api.jsonbin.io/v3/b/${binId}/latest`,{headers:{'X-Master-Key':J}}),d=await r.json();if(d.record){items=d.record.items||[];collapsed=d.record.collapsed||{};hiddenPriorities=d.record.hiddenPriorities||{vidya:[],movie:[],tv:[]};catOrder=d.record.catOrder||['vidya','movie','tv'];localStorage.media_v1=JSON.stringify(items);localStorage.vault_collapsed=JSON.stringify(collapsed);localStorage.vault_hidden_pri=JSON.stringify(hiddenPriorities);localStorage.vault_cat_order=JSON.stringify(catOrder);render();updateCloudStatus('Synced',!0)}}catch(e){updateCloudStatus('Sync failed',!1)}}
+
+        function updateCloudStatus(m,s=!0){document.getElementById('cloud-status').innerHTML=`<span class="text-${s?'green':'red'}-400">${m}</span>`}
+
+        async function resetCloud(){if(await customConfirm('Create new cloud storage? Your current data will be uploaded to a new cloud ID.')){binId='';localStorage.removeItem('vault_bin_id');initCloud()}}
+
+        function togglePriority(c,p){const a=hiddenPriorities[c];a.includes(p)?hiddenPriorities[c]=a.filter(x=>x!==p):a.push(p);localStorage.vault_hidden_pri=JSON.stringify(hiddenPriorities);save()}
+
+        function toggleCategory(k){collapsed[k]=!collapsed[k];localStorage.vault_collapsed=JSON.stringify(collapsed);render()}
+
+        function pickRandom(){const p=items.filter(i=>!hiddenPriorities[i.category]?.includes(i.priority)&&i.status!=='done'&&!collapsed[i.category]);if(!p.length){showToast("No visible items to pick from!");return}const w=p[Math.floor(Math.random()*p.length)];document.getElementById('random-content').innerHTML=`<div class="text-4xl font-black text-white uppercase">${w.title}</div><div class="text-xl text-blue-400 font-bold mt-2">${w.genre}</div>`;history.pushState({modal:'random-modal'},'');document.getElementById('random-modal').style.display='flex'}
+
+        function showToast(msg){const t=document.createElement('div');t.textContent=msg;t.style.cssText='position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#1e293b;color:#fff;padding:10px 20px;border-radius:10px;z-index:99999;font-size:13px;font-weight:700;box-shadow:0 4px 12px rgba(0,0,0,0.5)';document.body.appendChild(t);setTimeout(()=>t.remove(),2500)}
+
+        function debounceSearch(){clearTimeout(searchTimeout);searchTimeout=setTimeout(performLiveSearch,400)}
+
+        function handleEnterKey(e){if(e.key==='Enter'){e.preventDefault();const results=document.querySelectorAll('.live-item');if(results.length>1)results[1].click();else finalizeAdd(document.getElementById('title').value,'2026',0,'Custom','--')}}
+
+        async function handlePaste(e){const url=e.clipboardData.getData('text').trim();if(!url.startsWith('http'))return;e.preventDefault();const dropdown=document.getElementById('live-results');dropdown.innerHTML='<div class="p-3 text-xs text-white/50 italic">Fetching from URL...</div>';dropdown.classList.add('active');try{if(url.includes('imdb.com')){const imdbId=url.match(/tt\d+/)?.[0];if(imdbId){const r=await fetch(`https://api.themoviedb.org/3/find/${imdbId}?api_key=${T}&external_source=imdb_id`),d=await r.json();if(d.movie_results?.[0]){document.getElementById('category').value='movie';processSelection('movie',d.movie_results[0].id,d.movie_results[0].title,{});return}if(d.tv_results?.[0]){document.getElementById('category').value='tv';processSelection('tv',d.tv_results[0].id,d.tv_results[0].name,{});return}}}else if(url.includes('themoviedb.org')){const match=url.match(/\/(movie|tv)\/(\d+)/);if(match){document.getElementById('category').value=match[1];const id=match[2],r=await fetch(`https://api.themoviedb.org/3/${match[1]}/${id}?api_key=${T}`),d=await r.json();processSelection(match[1],id,d.title||d.name,{});return}}else if(url.includes('rawg.io')||url.includes('store.steampowered.com')){let gameName='';if(url.includes('rawg.io'))gameName=url.split('/').filter(p=>p&&!p.includes('rawg')&&!p.includes('games')&&!p.includes('http'))[0]?.replace(/-/g,' ');else if(url.includes('steam'))gameName=url.split('/')[5]?.replace(/-/g,' ')||url.split('/')[4]?.replace(/_/g,' ');if(gameName){document.getElementById('category').value='vidya';document.getElementById('title').value=gameName;performLiveSearch();return}}dropdown.innerHTML='<div class="p-3 text-xs text-red-400">URL not recognized. Supported: IMDB, TMDB, RAWG, Steam</div>';setTimeout(()=>dropdown.classList.remove('active'),3e3)}catch(e){dropdown.innerHTML='<div class="p-3 text-xs text-red-400">Failed to fetch from URL</div>';setTimeout(()=>dropdown.classList.remove('active'),3e3)}}
+
+        function highlightText(text,query){if(!query)return text;const regex=new RegExp(`(${query.replace(/[.*+?^${}()|[\]\\]/g,'\\$&')})`,`gi`);return text.replace(regex,'<span class="highlight">$1</span>')}
+
+        function parseSmartSearch(query){const filters={text:'',genre:null,year:null,scoreMin:null,scoreMax:null,status:null};const parts=query.toLowerCase().split(' ');parts.forEach(p=>{if(/^\d{4}$/.test(p))filters.year=parseInt(p);else if(p.match(/^score[><=]+\d+$/)){const op=p.match(/[><=]+/)[0],val=parseInt(p.match(/\d+/)[0]);if(op.includes('>'))filters.scoreMin=val;if(op.includes('<'))filters.scoreMax=val;if(op==='=')filters.scoreMin=filters.scoreMax=val}else if(['to-do','in-progress','done'].includes(p))filters.status=p;else filters.text+=' '+p});filters.text=filters.text.trim();return filters}
+
+        async function performLiveSearch(){const title=document.getElementById('title').value.trim(),cat=document.getElementById('category').value,dropdown=document.getElementById('live-results');if(title.length<2){dropdown.classList.remove('active');return}dropdown.innerHTML='<div class="skeleton p-3 rounded" style="height:60px"></div><div class="skeleton p-3 rounded mt-2" style="height:60px"></div><div class="skeleton p-3 rounded mt-2" style="height:60px"></div>';dropdown.classList.add('active');try{let results=[];if(cat==='vidya'){const r=await fetch(`https://api.rawg.io/api/games?key=${R}&search=${encodeURIComponent(title)}&page_size=20`),d=await r.json();d.results&&(results=d.results.map(g=>({title:g.name,year:g.released?g.released.split('-')[0]:'TBA',id:g.id,img:g.background_image||''})))}else{const r=await fetch(`https://api.themoviedb.org/3/search/${cat}?api_key=${T}&query=${encodeURIComponent(title)}`),d=await r.json();d.results&&(results=d.results.map(m=>({title:m.title||m.name,year:(m.release_date||m.first_air_date||'TBA').split('-')[0],id:m.id,img:m.poster_path?`https://image.tmdb.org/t/p/w92${m.poster_path}`:''})))}dropdown.innerHTML=`<div onclick="finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="live-item text-blue-400 italic text-xs font-black">USE RAW: "${title}"</div>`;results.forEach(res=>{const el=document.createElement('div');el.className='live-item';el.innerHTML=`${res.img?`<img src="${res.img}" class="live-img" loading="lazy">`:'<div class="live-img"></div>'}<div><div class="font-bold text-sm">${res.title}</div><div class="text-[10px] opacity-50">${res.year}</div></div>`;el.onclick=()=>processSelection(cat,res.id,res.title,res);dropdown.appendChild(el)})}catch(e){dropdown.innerHTML=`<div class="p-3 text-xs text-red-400">Network Error</div><div onclick="finalizeAdd('${title.replace(/'/g,"\\'")}','2026',0,'Custom','--')" class="live-item text-blue-400 italic text-xs font-black">USE RAW: "${title}"</div>`}}
+
+        async function processSelection(cat,id,title,searchResult){document.getElementById('live-results').classList.remove('active');try{let score=0,year='2026',genre='Genre',runtime='--',unreleased=false;if(cat==='vidya'){const r=await fetch(`https://api.rawg.io/api/games/${id}?key=${R}`),d=await r.json();score=d.rating?Math.round(d.rating*20):0;if(d.released){const date=new Date(d.released);year=date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}else{year=searchResult.year||'2026'}genre=d.genres?.[0]?.name||'Game';unreleased=d.tba||!d.released||new Date(d.released)>new Date();if(!unreleased)runtime=await fetchGameRuntime(title)}else{const det=await(await fetch(`https://api.themoviedb.org/3/${cat}/${id}?api_key=${T}`)).json();score=Math.round(det.vote_average*10);const releaseDate=det.release_date||det.first_air_date||'';if(releaseDate){const date=new Date(releaseDate);year=date.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'})}else{year='2026'}genre=det.genres?.[0]?.name||cat.toUpperCase();unreleased=det.status!=='Released';runtime=unreleased?'--':(cat==='movie'?(det.runtime?det.runtime+'m':'--'):(det.number_of_seasons?'S'+det.number_of_seasons:'S1')+' E'+(det.number_of_episodes||'--'))}const cover=await fetchCoverArt(id,cat);finalizeAdd(title,year,score,genre,runtime,unreleased,cover,id)}catch(e){finalizeAdd(title,'2026',0,cat==='vidya'?'Game':cat.toUpperCase(),'--',false)}}
+
+        function delItem(id,btn){if(btn.dataset.confirm==='1'){const item=items.find(x=>x.id===id);undoStack={item,timestamp:Date.now()};items=items.filter(z=>z.id!==id);if(settings.haptic&&navigator.vibrate)navigator.vibrate(50);save();showUndo('Item deleted')}else{btn.textContent='SURE?';btn.dataset.confirm='1';btn.classList.add('delete-confirm');setTimeout(()=>{btn.textContent='DEL';btn.dataset.confirm='';btn.classList.remove('delete-confirm')},3000)}}
+
+        // Keep confirmDelete as alias for swipe-delete path
+        async function confirmDelete(id){const item=items.find(x=>x.id===id);undoStack={item,timestamp:Date.now()};items=items.filter(z=>z.id!==id);if(settings.haptic&&navigator.vibrate)navigator.vibrate(50);save();showUndo('Item deleted')}
+
+        function changePriority(idStr, val){const id=Number(idStr);const item=items.find(x=>x.id===id);if(item){item.priority=parseInt(val);save()}}
+
+        function changeStatus(idStr, val){const id=Number(idStr);const item=items.find(x=>x.id===id);if(item){item.status=val;if(val==='done'&&settings.confetti)launchConfetti();save()}}
+
+        async function backfillCoverArt(){
+            if(!settings.coverArt)return;
+            const missing=items.filter(i=>!i.cover);
+            if(!missing.length)return;
+            let changed=false;
+            for(const item of missing){
+                try{
+                    let cover=null;
+                    if(item.apiId){
+                        cover=await fetchCoverArt(item.apiId,item.category);
+                    }
+                    // Fallback: search by title
+                    if(!cover&&item.title){
+                        if(item.category==='vidya'){
+                            const r=await fetch(`https://api.rawg.io/api/games?key=${R}&search=${encodeURIComponent(item.title)}&page_size=1`);
+                            const d=await r.json();
+                            if(d.results?.[0]){cover=d.results[0].background_image;if(!item.apiId)item.apiId=d.results[0].id}
+                        }else{
+                            const r=await fetch(`https://api.themoviedb.org/3/search/${item.category}?api_key=${T}&query=${encodeURIComponent(item.title)}&page_size=1`);
+                            const d=await r.json();
+                            if(d.results?.[0]?.poster_path){cover=`https://image.tmdb.org/t/p/w200${d.results[0].poster_path}`;if(!item.apiId)item.apiId=d.results[0].id}
+                        }
+                    }
+                    if(cover){item.cover=cover;changed=true}
+                }catch(e){}
+            }
+            if(changed){localStorage.media_v1=JSON.stringify(items);render()}
+        }
+
+        function undoDelete(){if(undoStack&&Date.now()-undoStack.timestamp<10000){items.push(undoStack.item);undoStack=null;save();document.getElementById('undo-banner').style.display='none'}}
+
+        function showUndo(text){const banner=document.getElementById('undo-banner');document.getElementById('undo-text').textContent=text;banner.style.display='block';setTimeout(()=>banner.style.display='none',5000)}
+
+        function finalizeAdd(title,year,score,genre,runtime,unreleased=false,cover=null,apiId=null){const upcomingChecked=document.getElementById('mark-upcoming').checked;items.push({id:Date.now(),title,category:document.getElementById('category').value,priority:parseInt(document.getElementById('priority').value),status:'to-do',score,genre,release:year,runtime,notes:'',unreleased:unreleased||upcomingChecked,dateAdded:new Date().toISOString(),tags:[],cover,apiId});document.getElementById('title').value='';document.getElementById('mark-upcoming').checked=false;document.getElementById('live-results').classList.remove('active');save()}
+
+        function moveCategory(i,d){if(d===-1&&i>0)[catOrder[i],catOrder[i-1]]=[catOrder[i-1],catOrder[i]];if(d===1&&i<catOrder.length-1)[catOrder[i],catOrder[i+1]]=[catOrder[i+1],catOrder[i]];localStorage.vault_cat_order=JSON.stringify(catOrder);renderSettings();render();pushToCloud()}
+
+        function moveItem(id,d){const idx=items.findIndex(x=>x.id===id),dest=idx+d;if(dest>=0&&dest<items.length)[items[idx],items[dest]]=[items[dest],items[idx]];save()}
+
+        function importBackup(i){const r=new FileReader();r.onload=e=>{items=JSON.parse(e.target.result);save()};r.readAsText(i.files[0])}
+
+        function autoExpand(el,id){el.style.height='inherit';el.style.height=el.scrollHeight+'px';const i=items.find(x=>x.id===id);if(i){i.notes=el.value;localStorage.media_v1=JSON.stringify(items)}}
+
+        function setTheme(theme){document.body.className='';if(theme!=='default-light')document.body.classList.add(theme);localStorage.vault_theme=theme;document.getElementById('theme-picker').classList.add('hidden')}
+
+        async function addTag(id){const tag=await customPrompt('Add tag:');if(tag){const item=items.find(x=>x.id===id);if(item){if(!item.tags)item.tags=[];item.tags.push(tag.toLowerCase().trim());save()}}}
+
+        function removeTag(id,tag){const item=items.find(x=>x.id===id);if(item&&item.tags){item.tags=item.tags.filter(t=>t!==tag);save()}}
+
+        function smartSort(list){return list.sort((a,b)=>{let scoreA=0,scoreB=0;scoreA+=5-a.priority;scoreB+=5-b.priority;const ageA=Date.now()-new Date(a.dateAdded||0);const ageB=Date.now()-new Date(b.dateAdded||0);scoreA+=Math.min(ageA/86400000/30,5);scoreB+=Math.min(ageB/86400000/30,5);const rtA=parseInt(a.runtime)||100;const rtB=parseInt(b.runtime)||100;if(rtA<rtB)scoreA+=2;if(rtB<rtA)scoreB+=2;if(a.status==='in-progress')scoreA+=3;if(b.status==='in-progress')scoreB+=3;return scoreB-scoreA})}
+
+        function launchConfetti(){if(!settings.confetti)return;const canvas=document.getElementById('confetti-canvas');const ctx=canvas.getContext('2d');canvas.width=window.innerWidth;canvas.height=window.innerHeight;const particles=Array.from({length:30},()=>({x:Math.random()*canvas.width,y:-10,vx:(Math.random()-.5)*4,vy:Math.random()*3+2,color:`hsl(${Math.random()*360},70%,60%)`}));function animate(){ctx.clearRect(0,0,canvas.width,canvas.height);particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.15;ctx.fillStyle=p.color;ctx.fillRect(p.x,p.y,8,8)});if(particles.some(p=>p.y<canvas.height))requestAnimationFrame(animate);else canvas.style.display='none'}canvas.style.display='block';animate();if(settings.haptic&&navigator.vibrate)navigator.vibrate([50,50,50])}
+
+        // Use data attributes to avoid apostrophe-breaking onclick for tags
+        function removeTagByEl(el){const id=Number(el.dataset.id);const tag=el.dataset.tag;const item=items.find(x=>x.id===id);if(item&&item.tags){item.tags=item.tags.filter(t=>t!==tag);save()}}
+
+        function removeTag(id,tag){const item=items.find(x=>x.id===id);if(item&&item.tags){item.tags=item.tags.filter(t=>t!==tag);save()}}
+
+        let swipeListenersAttached=false;
+        function initSwipe(){
+            if(!settings.swipe)return;
+            if(swipeListenersAttached)return; // prevent duplicates
+            swipeListenersAttached=true;
+            document.addEventListener('touchstart',e=>{const card=e.target.closest('.media-card');if(!card)return;touchElement=card;touchStartX=e.touches[0].clientX;touchStartY=e.touches[0].clientY},{passive:true});
+            document.addEventListener('touchmove',e=>{if(!touchElement)return;const dx=e.touches[0].clientX-touchStartX;const dy=e.touches[0].clientY-touchStartY;if(Math.abs(dx)>Math.abs(dy)&&Math.abs(dx)>20){e.preventDefault();touchElement.style.transform=`translateX(${dx}px)`;if(dx>80){touchElement.querySelector('.swipe-right')?.remove();const action=document.createElement('div');action.className='swipe-actions swipe-right';action.textContent='✓ Done';touchElement.appendChild(action)}else if(dx<-80){touchElement.querySelector('.swipe-left')?.remove();const action=document.createElement('div');action.className='swipe-actions swipe-left';action.textContent='✗ Delete';touchElement.appendChild(action)}else{touchElement.querySelectorAll('.swipe-actions').forEach(a=>a.remove())}}},{passive:false});
+            document.addEventListener('touchend',async e=>{if(!touchElement)return;if(!settings.swipe){touchElement.style.transform='';touchElement.querySelectorAll('.swipe-actions').forEach(a=>a.remove());touchElement=null;return}const dx=e.changedTouches[0].clientX-touchStartX;if(dx>120){const id=parseInt(touchElement.dataset.id);const item=items.find(x=>x.id===id);if(item){item.status='done';if(settings.confetti)launchConfetti();save()}}else if(dx<-120){const id=parseInt(touchElement.dataset.id);if(await customConfirm('Delete this item?')){const item=items.find(x=>x.id===id);undoStack={item,timestamp:Date.now()};items=items.filter(z=>z.id!==id);if(settings.haptic&&navigator.vibrate)navigator.vibrate(50);save();showUndo('Item deleted')}}touchElement.style.transform='';touchElement.querySelectorAll('.swipe-actions').forEach(a=>a.remove());touchElement=null},{passive:false});
+        }
+
+        function renderSettings(){const l=document.getElementById('cat-order-list'),labels={vidya:'Games',movie:'Cinema',tv:'Series'};l.innerHTML='';catOrder.forEach((c,i)=>{l.innerHTML+=`<div class="flex justify-between items-center bg-black/40 p-3 rounded-xl text-white text-[10px] font-black uppercase"><span>${labels[c]}</span><div class="flex gap-2"><button onclick="moveCategory(${i},-1)">▲</button><button onclick="moveCategory(${i},1)">▼</button></div></div>`});Object.keys(settings).forEach(k=>{const btn=document.getElementById(`toggle-${k}`);if(btn)btn.textContent=`${k.replace(/([A-Z])/g,' $1').replace(/^./,s=>s.toUpperCase())}: ${settings[k]?'ON':'OFF'}`})}
+
+        function toggleStatusFilter(status){if(status==='all'){statusFilter=['to-do','in-progress','done']}else{const idx=statusFilter.indexOf(status);if(idx>-1){statusFilter.splice(idx,1);if(statusFilter.length===0)statusFilter=['to-do','in-progress','done']}else{statusFilter.push(status)}}render()}
+
+        function showStats(){history.pushState({modal:'stats-modal'},'');const modal=document.getElementById('stats-modal'),content=document.getElementById('stats-content');const byCategory={vidya:items.filter(i=>i.category==='vidya'),movie:items.filter(i=>i.category==='movie'),tv:items.filter(i=>i.category==='tv')};const totals={vidya:{total:byCategory.vidya.length,done:byCategory.vidya.filter(i=>i.status==='done').length,hours:byCategory.vidya.reduce((acc,i)=>acc+(parseInt(i.runtime)||0),0)},movie:{total:byCategory.movie.length,done:byCategory.movie.filter(i=>i.status==='done').length,hours:Math.round(byCategory.movie.reduce((acc,i)=>acc+(parseInt(i.runtime)||0),0)/60)},tv:{total:byCategory.tv.length,done:byCategory.tv.filter(i=>i.status==='done').length,episodes:byCategory.tv.reduce((acc,i)=>{const match=(i.runtime||'').match(/E(\d+)/);return acc+(match?parseInt(match[1]):0)},0)}};const genreCounts={};items.forEach(i=>{genreCounts[i.genre]=(genreCounts[i.genre]||0)+1});const topGenres=Object.entries(genreCounts).sort((a,b)=>b[1]-a[1]).slice(0,5);const recentCompleted=items.filter(i=>i.status==='done').sort((a,b)=>b.id-a.id).slice(0,10);const timeline={};items.filter(i=>i.status==='done'&&i.dateAdded).forEach(i=>{const month=new Date(i.dateAdded).toLocaleDateString('en-US',{month:'short',year:'numeric'});timeline[month]=(timeline[month]||0)+1});let html=`<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8"><div class="bg-black/40 p-4 rounded-xl border border-amber-500/30"><div class="text-amber-400 text-3xl mb-2">🎮</div><div class="text-white font-black text-2xl">${totals.vidya.total}</div><div class="text-white/80 text-[10px] uppercase">Games</div><div class="text-green-400 text-sm font-bold mt-2">${totals.vidya.done} Done</div><div class="text-white/90 text-xs">${totals.vidya.hours}h played</div></div><div class="bg-black/40 p-4 rounded-xl border border-red-500/30"><div class="text-red-400 text-3xl mb-2">🎥</div><div class="text-white font-black text-2xl">${totals.movie.total}</div><div class="text-white/80 text-[10px] uppercase">Movies</div><div class="text-green-400 text-sm font-bold mt-2">${totals.movie.done} Done</div><div class="text-white/90 text-xs">${totals.movie.hours}h watched</div></div><div class="bg-black/40 p-4 rounded-xl border border-green-500/30"><div class="text-green-400 text-3xl mb-2">📺</div><div class="text-white font-black text-2xl">${totals.tv.total}</div><div class="text-white/80 text-[10px] uppercase">Shows</div><div class="text-green-400 text-sm font-bold mt-2">${totals.tv.done} Done</div><div class="text-white/90 text-xs">${totals.tv.episodes} episodes</div></div></div>`;if(Object.keys(timeline).length>0){html+=`<div class="mb-6"><h3 class="text-white font-black uppercase text-base mb-3">Timeline</h3><div class="space-y-1">`;Object.entries(timeline).slice(-12).forEach(([month,count])=>{const pct=Math.round(count/Math.max(...Object.values(timeline))*100);html+=`<div class="flex items-center gap-3"><div class="text-white/70 text-xs w-24">${month}</div><div class="flex-1 bg-black/40 rounded-full h-5 overflow-hidden border border-white/10"><div class="bg-purple-600 h-full flex items-center justify-end pr-2" style="width:${pct}%"><span class="text-white text-[10px] font-black">${count}</span></div></div></div>`});html+=`</div></div>`}html+=`<div class="mb-6"><h3 class="text-white font-black uppercase text-base mb-3">Top Genres</h3><div class="space-y-2">`;topGenres.forEach(([genre,count])=>{const pct=Math.round(count/items.length*100);html+=`<div class="flex items-center gap-3"><div class="text-white/90 text-xs w-20 flex-shrink-0">${genre}</div><div class="flex-1 bg-black/40 rounded-full h-6 overflow-hidden border border-white/10"><div class="bg-blue-600 h-full flex items-center justify-end pr-2" style="width:${pct}%"><span class="text-white text-[10px] font-black">${count}</span></div></div></div>`});html+=`</div></div>`;html+=`<div class="mb-6"><h3 class="text-white font-black uppercase text-base mb-3">Completion Rate</h3><div class="grid grid-cols-3 gap-3">`;['vidya','movie','tv'].forEach(cat=>{const total=byCategory[cat].length,done=byCategory[cat].filter(i=>i.status==='done').length,pct=total?Math.round(done/total*100):0;const labels={vidya:'Games',movie:'Movies',tv:'Shows'};html+=`<div class="bg-black/40 p-3 rounded-xl text-center border border-white/10"><div class="text-white font-black text-2xl mb-1">${pct}%</div><div class="text-white/80 text-[9px] uppercase">${labels[cat]}</div><div class="text-white/90 text-[10px]">${done}/${total}</div></div>`});html+=`</div></div>`;if(recentCompleted.length>0){html+=`<div><h3 class="text-white font-black uppercase text-base mb-3">Recently Completed</h3><div class="space-y-2">`;recentCompleted.forEach(i=>{const icons={vidya:'🎮',movie:'🎥',tv:'📺'};html+=`<div class="bg-black/40 p-3 rounded-xl border border-white/10 flex items-center gap-3"><div class="text-xl flex-shrink-0">${icons[i.category]}</div><div class="flex-1 min-w-0"><div class="text-white font-bold text-xs truncate">${i.title}</div><div class="text-white/70 text-[9px] uppercase">${i.genre}</div></div><div class="text-green-400 font-mono text-base flex-shrink-0">${i.score}</div></div>`});html+=`</div></div>`}content.innerHTML=html;modal.style.display='flex'}
+
+        function render(){
+            ['all','to-do','in-progress','done'].forEach(s=>{const b=document.getElementById(`filter-${s==='to-do'?'todo':s==='in-progress'?'progress':s}`);if(b){const isActive=s==='all'?statusFilter.length===3:statusFilter.includes(s);if(isActive){b.style.background='rgba(59,130,246,0.9)';b.style.borderColor='#3b82f6';b.style.color='#fff'}else{b.style.background='var(--filter-inactive-bg)';b.style.borderColor='var(--filter-inactive)';b.style.color='var(--filter-inactive-text)'}}});
+            const c=document.getElementById('tables-container'),s=localStorage.vault_sort||'priority-added',f=document.getElementById('global-search').value.toLowerCase(),cats={vidya:'🎮 GAMES',movie:'🎥 CINEMA',tv:'📺 SERIES'},pMap={1:'IMM',2:'HI',3:'MED',4:'LOW'};const sortSelect=document.getElementById('sort-order');if(sortSelect)sortSelect.value=s;const filters=parseSmartSearch(f);c.innerHTML='';catOrder.forEach(k=>{let list=items.filter(i=>{if(i.category!==k)return false;if(!statusFilter.includes(i.status))return false;if(filters.text&&!i.title.toLowerCase().includes(filters.text))return false;if(filters.genre&&i.genre.toLowerCase()!==filters.genre)return false;if(filters.year&&new Date(i.release).getFullYear()!==filters.year)return false;if(filters.scoreMin!==null&&i.score<filters.scoreMin)return false;if(filters.scoreMax!==null&&i.score>filters.scoreMax)return false;if(filters.status&&i.status!==filters.status)return false;return true});
+            // Respect statusFilter for done items — only hide done if not in filter; hide non-done by hiddenPriorities
+            list=list.filter(i=>{if(i.status==='done')return statusFilter.includes('done');return!hiddenPriorities[k].includes(i.priority)});
+            if(s==='smart')list=smartSort(list);else if(s!=='manual'&&!s.startsWith('priority-manual'))list.sort((a,b)=>{if(s==='priority'||s.startsWith('priority-'))if(a.priority!==b.priority)return a.priority-b.priority;if(s==='recent')return b.id-a.id;if(s==='rating'||s==='priority-rating')return b.score-a.score;if(s==='release'||s==='priority-release'){const dateA=new Date(a.release);const dateB=new Date(b.release);return dateB-dateA}if(s==='added'||s==='priority-added')return new Date(a.dateAdded||0)-new Date(b.dateAdded||0);if(s==='priority-genre')return(a.genre||'').localeCompare(b.genre||'');return 0});let pToggles=statusFilter.includes('done')&&statusFilter.length===1?'':'<div class="flex gap-2 ml-4 relative z-30" onclick="event.stopPropagation()">';if(!(statusFilter.includes('done')&&statusFilter.length===1)){[1,2,3,4].forEach(p=>{const colors={1:'bg-red-600',2:'bg-orange-600',3:'bg-blue-600',4:'bg-slate-600'};pToggles+=`<div onclick="togglePriority('${k}',${p})" class="pri-dot ${colors[p]} ${hiddenPriorities[k].includes(p)?'opacity-20 grayscale':'opacity-100'}"></div>`});pToggles+='</div>'}if(list.length===0&&!f)return;let section=`<section><div onclick="toggleCategory('${k}')" class="flex items-center mt-6 mb-2 cursor-pointer select-none"><h2>${cats[k]} ${collapsed[k]?'⊕':''}</h2>${pToggles}</div><div style="display:${collapsed[k]?'none':'block'}" class="space-y-2">`;list.forEach(i=>{const bg=i.status==='done'?'priority-bg-done':`priority-bg-${i.priority}`;const isUnreleased=i.unreleased||false;const addedDate=i.dateAdded?new Date(i.dateAdded).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}):'-';const isNewRelease=!isUnreleased&&new Date(i.release).getFullYear()>=2026&&i.score===0;const scoreDisplay=isUnreleased?'TBA':isNewRelease?'TBD':i.score===0?'-':i.score;const compactClass=settings.compact?'compact':'';section+=`<div class="media-card ${compactClass} card-${k} ${bg} p-3" data-id="${i.id}">${(s==='manual'||s==='priority-manual')?`<div class="absolute right-0 top-10 flex flex-col gap-1 z-20"><button onclick="moveItem(${i.id},-1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▲</button><button onclick="moveItem(${i.id},1)" class="bg-black/60 text-white w-7 h-7 rounded text-[10px]">▼</button></div>`:''}<div class="category-watermark">${k}</div><div class="flex justify-between items-start relative z-10"><div class="flex gap-3 flex-1">${settings.coverArt&&i.cover?`<img src="${i.cover}" class="cover-art" loading="lazy">`:''}<div class="flex-1"><h3 class="font-bold text-white uppercase text-sm leading-tight" style="text-shadow:1px 1px 2px rgba(0,0,0,0.5)">${highlightText(i.title,filters.text)}${isUnreleased?' <span class="text-[7px] bg-amber-600 px-1.5 py-0.5 rounded ml-1">UPCOMING</span>':''}</h3><div class="text-[9px] text-white uppercase tracking-wider" style="text-shadow:1px 1px 2px rgba(0,0,0,0.3)">${i.genre} • ${isUnreleased?'Expected: ':''} ${i.release} ${isUnreleased?'':'• '+i.runtime}</div><div class="text-[9px] text-white/80 uppercase mt-1" style="text-shadow:1px 1px 2px rgba(0,0,0,0.3)">Added ${addedDate}</div>${settings.tags&&i.tags?.length?`<div class="mt-1">${i.tags.map(t=>`<span class="tag-chip" data-id="${i.id}" data-tag="${t.replace(/"/g,'&quot;')}" onclick="removeTagByEl(this)">${t} ×</span>`).join('')}</div>`:''}</div></div><div class="flex items-center gap-3"><button onclick="window.open('https://www.youtube.com/results?search_query=${encodeURIComponent(i.title+' official trailer')}','_blank')" class="bg-white/20 w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold border border-white/40">▶</button><span class="font-mono text-lg text-white font-black leading-none" style="text-shadow:2px 2px 4px rgba(0,0,0,0.5)">${scoreDisplay}</span></div></div><div class="mt-2 flex items-center gap-2 relative z-10 flex-wrap"><select onchange="changePriority('${i.id}',this.value)" class="text-[9px] uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 outline-none">${Object.entries(pMap).map(([v,t])=>`<option value="${v}" ${i.priority==v?'selected':''}>${t}</option>`).join('')}</select>${settings.notes?`<span class="notes-trigger" onclick="document.getElementById('note-${i.id}').classList.toggle('active')">Notes +</span>`:''}${settings.tags?`<span class="notes-trigger" onclick="addTag(${i.id})">Tag +</span>`:''}<select onchange="changeStatus('${i.id}',this.value)" class="text-[9px] uppercase px-2 py-1 rounded bg-black/60 text-white border border-white/10 flex-1 outline-none"><option value="to-do" ${i.status==='to-do'?'selected':''}>To-Do</option><option value="in-progress" ${i.status==='in-progress'?'selected':''}>In Progress</option><option value="done" ${i.status==='done'?'selected':''}>Done</option></select><button id="del-${i.id}" onclick="delItem(${i.id},this)" class="text-white text-[9px] font-black px-2 py-1 bg-white/10 rounded border border-white/10">DEL</button></div>${settings.notes?`<textarea id="note-${i.id}" class="notes-area relative z-10 ${i.notes?'active':''}" placeholder="..." oninput="autoExpand(this,${i.id})" onblur="save()">${i.notes||''}</textarea>`:''}</div>`});c.innerHTML+=section+'</div></section>'});sessionStorage.vault_scroll=window.scrollY}
+
+        document.addEventListener('keydown',e=>{if(e.key==='Escape'){document.getElementById('settings-menu').style.display='none';document.getElementById('random-modal').style.display='none';document.getElementById('stats-modal').style.display='none';document.getElementById('custom-modal').style.display='none';document.getElementById('live-results').classList.remove('active')}});
+
+        document.addEventListener('click',e=>{const dropdown=document.getElementById('live-results');if(dropdown.classList.contains('active')&&!dropdown.contains(e.target)&&!document.getElementById('title').contains(e.target))dropdown.classList.remove('active')});
+
+        let pullY=0,pulling=false;
+        document.addEventListener('touchstart',e=>{if(window.scrollY===0)pullY=e.touches[0].clientY},{passive:true});
+        document.addEventListener('touchmove',e=>{if(window.scrollY===0&&e.touches[0].clientY>pullY+50){pulling=true}},{passive:true});
+        document.addEventListener('touchend',()=>{if(pulling){pulling=false;pullFromCloud()}},{passive:true});
+
+        window.addEventListener('scroll',()=>sessionStorage.vault_scroll=window.scrollY,{passive:true});
+        window.addEventListener('load',()=>{if(sessionStorage.vault_scroll)window.scrollTo(0,parseInt(sessionStorage.vault_scroll))});
+
+        // Back button: close any open modal instead of navigating away
+        window.addEventListener('popstate',()=>{
+            ['settings-menu','random-modal','stats-modal','custom-modal'].forEach(id=>{
+                const el=document.getElementById(id);
+                if(el&&el.style.display==='flex')el.style.display='none';
+            });
+            document.getElementById('live-results').classList.remove('active');
+        });
+        // Push history state whenever a modal opens so back button can close it
+        document.querySelector('[onclick*="settings-menu"]').addEventListener('click',()=>history.pushState({modal:'settings-menu'},''));
+
+        initSwipe();
+        renderSettings();
+        render();
+        setTimeout(initCloud,100);
+        setTimeout(backfillCoverArt,2000);
+        } catch(err) {
+            document.body.innerHTML = `<div style="padding:2rem;text-align:center;font-family:sans-serif"><h1 style="color:#ef4444;margin-bottom:1rem">⚠️ VAULT Error</h1><p style="margin-bottom:1rem">Error: ${err.message}</p><p style="margin-bottom:2rem;color:#64748b">Your localStorage might be corrupted. Click below to reset:</p><button onclick="localStorage.clear();location.reload()" style="background:#ef4444;color:white;padding:1rem 2rem;border:none;border-radius:0.5rem;font-weight:bold;cursor:pointer;font-size:16px">RESET & RELOAD</button><p style="margin-top:1rem;font-size:12px;color:#64748b">This will clear all local data but won't affect cloud backups.</p></div>`;
+        }
+    </script>
+</body>
+</html>
